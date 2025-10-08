@@ -1,0 +1,2 @@
+-- Add ai_analysis column to submissions table if it doesn't exist
+ALTER TABLE submissions ADD COLUMN IF NOT EXISTS ai_analysis JSONB;

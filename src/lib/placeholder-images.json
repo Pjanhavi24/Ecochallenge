@@ -1,0 +1,148 @@
+{
+  "placeholderImages": [
+    {
+      "id": "task-1-tree",
+      "description": "A person planting a small tree in a field.",
+      "imageUrl": "https://images.unsplash.com/photo-1710361006404-a13d01802ce9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHx0cmVlJTIwcGxhbnRpbmd8ZW58MHx8fHwxNzU4OTYwMDczfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "tree planting"
+    },
+    {
+      "id": "task-2-waste",
+      "description": "Hands sorting different types of waste into recycling bins.",
+      "imageUrl": "https://images.unsplash.com/photo-1540980193882-9fc6e90e29c8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHx3YXN0ZSUyMHNlZ3JlZ2F0aW9ufGVufDB8fHx8MTc1ODk0MTY3OHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "waste segregation"
+    },
+    {
+      "id": "task-3-energy",
+      "description": "A person turning off a light switch.",
+      "imageUrl": "https://images.unsplash.com/photo-1474631245212-32dc3c8310c6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxlbmVyZ3klMjBzYXZpbmd8ZW58MHx8fHwxNzU4ODc3NTY3fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "energy saving"
+    },
+    {
+      "id": "task-4-water",
+      "description": "A person fixing a dripping tap.",
+      "imageUrl": "https://images.unsplash.com/photo-1620807996135-906005dc2a31?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHx3YXRlciUyMGNvbnNlcnZhdGlvbnxlbnwwfHx8fDE3NTg4OTQxNjB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "water conservation"
+    },
+    {
+      "id": "task-5-compost",
+      "description": "A compost bin with organic waste.",
+      "imageUrl": "https://images.unsplash.com/photo-1715066660662-90aa88234e04?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8Y29tcG9zdCUyMGJpbnxlbnwwfHx8fDE3NTg5ODU0Nzd8MA&ixlib.rb-4.1.0&q=80&w=1080",
+      "imageHint": "compost bin"
+    },
+    {
+      "id": "lesson-1-cover",
+      "description": "Illustration about the importance of recycling.",
+      "imageUrl": "https://images.unsplash.com/photo-1604187351574-c75ca79f5807?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxyZWN5Y2xpbmclMjBpbGx1c3RyYXRpb258ZW58MHx8fHwxNzU4OTg4NDk2fDA&ixlib.rb-4.1.0&q=80&w=1080",
+      "imageHint": "recycling illustration"
+    },
+    {
+      "id": "lesson-2-cover",
+      "description": "A vibrant forest with sunlight filtering through.",
+      "imageUrl": "https://images.unsplash.com/photo-1723020853898-66ce64b2690e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHx2aWJyYW50JTIwZm9yZXN0fGVufDB8fHx8MTc1ODk4ODQ5Nnww&ixlib.rb-4.1.0&q=80&w=1080",
+      "imageHint": "vibrant forest"
+    },
+    {
+      "id": "lesson-3-cover",
+      "description": "A clean river flowing through a green valley.",
+      "imageUrl": "https://images.unsplash.com/photo-1568282254850-ed64d5414eef?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxjbGVhbiUyMHJpdmVyfGVufDB8fHx8MTc1ODkxMDI1N3ww&ixlib.rb-4.1.0&q=80&w=1080",
+      "imageHint": "clean river"
+    },
+    {
+      "id": "task-6-ecobricks",
+      "description": "A plastic bottle filled with plastic waste to make an eco-brick.",
+      "imageUrl": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxwbGFzdGljJTIwYm90dGxlJTIwZmlsbGVkfGVufDB8fHx8MTc1ODk4NTQ3N3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "eco brick"
+    },
+    {
+      "id": "task-7-noplastic",
+      "description": "Reusable shopping bags and containers.",
+      "imageUrl": "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxyZXVzYWJsZSUyMGJhZ3N8ZW58MHx8fHwxNzU4OTg1NDc3fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "no plastic"
+    },
+    {
+      "id": "lesson-4-cover",
+      "description": "An illustration showing sources of carbon emissions.",
+      "imageUrl": "https://images.unsplash.com/photo-1611273343979-5991a7f14a2a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxjYXJib24lMjBmb290cHJpbnR8ZW58MHx8fHwxNzI0MjY2NjMxfDA&ixlib.rb-4.1.0&q=80&w=1080",
+      "imageHint": "carbon footprint"
+    },
+    {
+      "id": "lesson-5-cover",
+      "description": "Plastic bottles floating in the ocean.",
+      "imageUrl": "https://images.unsplash.com/photo-1569336415962-a4bd9f69cd83?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxwbGFzdGljJTIwcG9sbHV0aW9ufGVufDB8fHx8MTcyNDI2NjY2MHww&ixlib.rb-4.1.0&q=80&w=1080",
+      "imageHint": "plastic pollution"
+    },
+    {
+      "id": "task-8-homehelper",
+      "description": "A person cleaning a kitchen counter.",
+      "imageUrl": "https://images.unsplash.com/photo-1563453392212-326f5e854473?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxraXRjaGVuJTIwY2xlYW5pbmd8ZW58MHx8fHwxNzU4OTE0NzM1fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "kitchen cleaning"
+    },
+    {
+      "id": "lesson-6-cover",
+      "description": "A grandchild and grandparent gardening together.",
+      "imageUrl": "https://images.unsplash.com/photo-1611735341450-74d61e660ad2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxmYW1pbHklMjBnYXJkZW5pbmd8ZW58MHx8fHwxNzU4OTk5NDY1fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "family gardening"
+    },
+    {
+      "id": "task-9-ganesh",
+      "description": "A handmade clay Ganesh idol being crafted.",
+      "imageUrl": "https://images.unsplash.com/photo-1578662996442-48f60103fc96?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxjbGF5JTIwaWRvbCUyMG1ha2luZ3xlbnwwfHx8fDE3NTg5ODU0Nzd8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "clay idol making"
+    },
+    {
+      "id": "task-10-diwali",
+      "description": "Beautiful LED diyas and lights for Diwali celebration.",
+      "imageUrl": "https://images.unsplash.com/photo-1604187351574-c75ca79f5807?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxkaXdhbGklMjBsaWdodHMlMjBkaXlhc3xlbnwwfHx8fDE3NTg5ODU0Nzd8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "diwali lights"
+    },
+    {
+      "id": "task-11-cleanup",
+      "description": "People cleaning up festival waste from streets.",
+      "imageUrl": "https://images.unsplash.com/photo-1540980193882-9fc6e90e29c8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxzdHJlZXQlMjBjbGVhbnVwJTIwY29tbXVuaXR5fGVufDB8fHx8MTc1ODk0MTY3OHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "street cleanup"
+    },
+    {
+      "id": "task-12-holi",
+      "description": "Natural colorful powders made from flowers and spices.",
+      "imageUrl": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxob2xpJTIwY29sb3JzJTIwZmxvd2Vyc3xlbnwwfHx8fDE3NTg5ODU0Nzd8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "natural colors"
+    },
+    {
+      "id": "task-13-water-holi",
+      "description": "Dry Holi celebration without water wastage.",
+      "imageUrl": "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxkcnklMjBob2xpJTIwY2VsZWJyYXRpb258ZW58MHx8fHwxNzU4OTg1NDc3fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "dry holi"
+    },
+    {
+      "id": "task-14-eid",
+      "description": "Eco-friendly decorations made from recycled materials.",
+      "imageUrl": "https://images.unsplash.com/photo-1563453392212-326f5e854473?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxlY28lMjBkZWNvcmF0aW9ucyUyMHJlY3ljbGVkfGVufDB8fHx8MTc1ODk4NTQ3N3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "eco decorations"
+    },
+    {
+      "id": "task-15-christmas",
+      "description": "A potted plant decorated as a Christmas tree.",
+      "imageUrl": "https://images.unsplash.com/photo-1710361006404-a13d01802ce9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxwb3R0ZWQlMjBjaHJpc3RtYXMlMjB0cmVlJTIwZGVjb3JhdGVkfGVufDB8fHx8MTc1ODk4NTQ3N3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "potted christmas tree"
+    },
+    {
+      "id": "task-16-navratri",
+      "description": "Eco-friendly Navratri decorations and community cleaning.",
+      "imageUrl": "https://images.unsplash.com/photo-1611735341450-74d61e660ad2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxuYXZyYXRyaSUyMGRlY29yYXRpb24lMjBjb21tdW5pdHl8ZW58MHx8fHwxNzU4OTg1NDc3fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "navratri decorations"
+    },
+    {
+      "id": "task-17-durga",
+      "description": "Biodegradable Durga Puja decorations and proper idol immersion.",
+      "imageUrl": "https://images.unsplash.com/photo-1620807996135-906005dc2a31?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxkdXJnYSUyMHB1amElMjBiaW9kZWdyYWRhYmxlfGVufDB8fHx8MTc1ODk4NTQ3N3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "durga puja"
+    },
+    {
+      "id": "task-18-karva",
+      "description": "Reusable containers and eco-friendly Karva Chauth celebration.",
+      "imageUrl": "https://images.unsplash.com/photo-1474631245212-32dc3c8310c6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxrYXJ2YSUyMGNoYXV0aCUyMHJldXNhYmxlfGVufDB8fHx8MTc1ODk4NTQ3N3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "karva chauth"
+    }
+  ]
+}
