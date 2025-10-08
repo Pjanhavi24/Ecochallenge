@@ -1,4 +1,3 @@
-# Ecochallenge
 # EcoChallenge
 
 Gamified eco-tasks for students. A Next.js application that empowers students to complete environmental challenges, submit evidence, earn points, and learn about sustainability through interactive lessons and AI-powered coaching.
