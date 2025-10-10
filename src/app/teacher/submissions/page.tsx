@@ -36,6 +36,13 @@ export default function SubmissionsPage() {
   useEffect(() => {
     const load = async () => {
       try {
+        // Get the current session
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+        if (sessionError || !sessionData.session) {
+          console.error('No session found');
+          return;
+        }
+
         const response = await fetch('/api/submissions');
         if (response.ok) {
           const { submissions } = await response.json();

@@ -24,10 +24,11 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('POST /api/challenges called')
+    console.log('SUPABASE_SERVICE_ROLE_KEY exists:', !!process.env.SUPABASE_SERVICE_ROLE_KEY)
     const body = await request.json()
     const { title, description, category, points, imageId, tutorialUrl } = body
-
-    console.log('Creating challenge with data:', body)
+    console.log('Request body:', body)
 
     if (!title || !description || !category || !points) {
       return NextResponse.json(
@@ -57,9 +58,11 @@ export async function POST(request: NextRequest) {
     console.log('Supabase response:', { data: challenge, error })
 
     if (error) {
+      console.error('Database insert error:', error)
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
+    console.log('Challenge created successfully:', challenge)
     return NextResponse.json({ challenge })
   } catch (error) {
     console.error('Error creating challenge:', error)

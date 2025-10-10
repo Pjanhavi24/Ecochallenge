@@ -229,13 +229,24 @@ export default function RegisterPage() {
           {role === "student" && (
             <div>
               <label className="block text-sm font-medium text-black">Class</label>
-              <input
+              <select
                 name="class"
                 value={form.class}
                 onChange={handleChange}
                 className="w-full mt-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-400 text-black"
-                placeholder="10th"
-              />
+                >
+                  <option value="">Select Class</option>
+                  <option value="3th">3th Grade</option>
+                  <option value="4th">4th Grade</option>
+                  <option value="5th">5th Grade</option>
+                  <option value="6th">6th Grade</option>
+                  <option value="7th">7th Grade</option>
+                  <option value="8th">8th Grade</option>
+                  <option value="9th">9th Grade</option>
+                  <option value="10th">10th Grade</option>
+                  <option value="11th">11th Grade</option>
+                  <option value="12th">12th Grade</option>
+                </select>
             </div>
           )}
 

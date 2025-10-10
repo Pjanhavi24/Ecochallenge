@@ -6,31 +6,38 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'zod';
-
-const EcoCoachInputSchema = z.object({
-  history: z.array(z.object({
-    role: z.enum(['user', 'model']),
-    content: z.array(z.object({ text: z.string() })),
-  })),
-  message: z.string().describe('The user\'s message.'),
-});
 
 export async function ecoCoach(history: any[], message: string) {
-  const prompt = `You are Eco-Coach, a friendly and knowledgeable AI assistant for students learning about environmental topics. Your goal is to provide clear, concise, and encouraging answers to their questions. Keep your answers focused on the environment, sustainability, and conservation.
+  try {
+    const prompt = `You are Eco-Coach, a friendly and knowledgeable AI assistant for students learning about environmental topics. Your goal is to provide clear, concise, and encouraging answers to their questions. Keep your answers focused on the environment, sustainability, and conservation.
+
+Format your responses using markdown for better readability:
+- Use bullet points (-) for lists
+- Use numbered lists (1., 2., etc.) for steps or sequences
+- Use **bold text** for emphasis on important terms
+- Use *italic text* for subtle emphasis
+- Use \`inline code\` for technical terms or short code snippets
+- Use \`\`\`language\ncode block\n\`\`\` for longer code examples (specify language like javascript, python, etc.)
+- Use # Headers for sections if the response is long
+- Keep responses structured, organized, and easy to scan
 
 Here is the conversation history:
-{{#each history}}
-- {{role}}: {{#each content}}{{this.text}}{{/each}}
-{{/each}}
+${history.map((msg: any) => `- ${msg.role}: ${msg.content.map((c: any) => c.text).join('')}`).join('\n')}
 
 New question:
-{{{message}}}`;
+${message}
 
-  const { stream, response } = ai.generateStream(prompt);
+Response:`;
 
-  // Also wait for the full response and return it.
-  const fullResponse = await response;
+    const response = await ai.generate({
+      model: 'googleai/gemini-2.5-flash',
+      prompt: prompt,
+    });
 
-  return { stream, response: fullResponse };
+    return response.text;
+  } catch (error) {
+    console.error('EcoCoach AI error:', error);
+    console.error('Error details:', JSON.stringify(error, null, 2));
+    return "I'm sorry, I'm having trouble generating a response right now. Please try again later.";
+  }
 }

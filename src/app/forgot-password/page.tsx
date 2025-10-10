@@ -11,7 +11,6 @@ export default function ForgotPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
-  const [resetUrl, setResetUrl] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -20,6 +19,7 @@ export default function ForgotPasswordPage() {
     setSuccess(false);
 
     try {
+      console.log('Sending forgot password request for:', email, role);
       const response = await fetch("/api/auth/forgot-password", {
         method: "POST",
         headers: {
@@ -31,19 +31,19 @@ export default function ForgotPasswordPage() {
         }),
       });
 
+      console.log('Response status:', response.status);
       const data = await response.json();
+      console.log('Response data:', data);
 
       if (!response.ok) {
         throw new Error(data.error || "Failed to send reset email");
       }
 
-      // Store the reset URL if provided (for development)
-      if (data.resetUrl) {
-        setResetUrl(data.resetUrl);
-      }
 
       setSuccess(true);
+      console.log('Success state set to true');
     } catch (err: any) {
+      console.error('Frontend error:', err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -76,19 +76,6 @@ export default function ForgotPasswordPage() {
             <p className="text-gray-600 mb-6">
               If an account with that email exists, we've sent you a password reset link.
             </p>
-            {resetUrl && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-                <p className="text-blue-800 text-sm font-medium mb-2">Development Mode - Reset Link:</p>
-                <a
-                  href={resetUrl}
-                  className="text-blue-600 hover:text-blue-800 underline break-all text-sm"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {resetUrl}
-                </a>
-              </div>
-            )}
             <div className="space-y-3">
               <Link
                 href="/login"
@@ -100,7 +87,6 @@ export default function ForgotPasswordPage() {
                 onClick={() => {
                   setSuccess(false);
                   setEmail("");
-                  setResetUrl(null);
                 }}
                 className="w-full bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-2 px-4 rounded-lg transition duration-200"
               >

@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import ReactCrop, { Crop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 type Profile = {
   user_id: string;
@@ -22,6 +23,8 @@ type Profile = {
   role: "student" | "teacher";
   points?: number;
   profile_image_url?: string;
+  class?: string;
+  school?: string;
 };
 
 type Submission = {
@@ -45,7 +48,24 @@ export default function ProfilePage() {
   const [crop, setCrop] = useState<Crop>({ unit: '%', width: 50, height: 50, x: 25, y: 25 });
   const [completedCrop, setCompletedCrop] = useState<Crop | null>(null);
   const [imageRef, setImageRef] = useState<HTMLImageElement | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState({ class: "", school: "" });
+  const [schoolOptions, setSchoolOptions] = useState<{ id: number; name: string }[]>([]);
   const { toast } = useToast();
+
+  useEffect(() => {
+    async function loadSchools() {
+      try {
+        const res = await fetch('/api/schools?limit=1000')
+        const data = await res.json()
+        const schools = (data.schools ?? []).map((s: any) => ({ id: s.id, name: s.name }))
+        setSchoolOptions(schools)
+      } catch (e) {
+        setSchoolOptions([])
+      }
+    }
+    loadSchools()
+  }, [])
 
   useEffect(() => {
     let isMounted = true;
@@ -65,7 +85,7 @@ export default function ProfilePage() {
       // Fetch profile - select only columns that exist in your users table
       const { data: profileRow, error: profileError } = await supabase
         .from("users")
-        .select("user_id,name,email,role,points,profile_image_url")
+        .select("user_id,name,email,role,points,profile_image_url,class,school")
         .eq("user_id", authUserId)
         .single();
 
@@ -79,6 +99,7 @@ export default function ProfilePage() {
       if (!isMounted) return;
       const p = profileRow as Profile;
       setProfile(p);
+      setEditForm({ class: p.class || "", school: p.school || "" });
 
       // Load submission stats and list (if table exists)
       const { data: subs, error: subsError } = await supabase
@@ -105,6 +126,22 @@ export default function ProfilePage() {
   }, [router]);
 
   const avatarSeed = useMemo(() => profile?.name ?? "user", [profile?.name]);
+
+  const handleSaveProfile = async () => {
+    if (!profile) return;
+    try {
+      const { error } = await supabase
+        .from('users')
+        .update({ class: editForm.class || null, school: editForm.school || null })
+        .eq('user_id', profile.user_id);
+      if (error) throw error;
+      setProfile(prev => prev ? { ...prev, class: editForm.class || undefined, school: editForm.school || undefined } : null);
+      setIsEditing(false);
+      toast({ title: "Profile updated", description: "Your class and school have been updated." });
+    } catch (error: any) {
+      toast({ variant: "destructive", title: "Update failed", description: error.message });
+    }
+  };
 
   const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -261,6 +298,19 @@ export default function ProfilePage() {
           </div>
           <CardTitle className="text-3xl">{profile.name}</CardTitle>
           <CardDescription>{profile.email}</CardDescription>
+          <div className="mt-4 space-y-2">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium">Class:</span>
+              <span className="text-sm">{profile.class || "Not set"}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium">School:</span>
+              <span className="text-sm">{profile.school || "Not set"}</span>
+            </div>
+            <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
+              Edit Class & School
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -338,6 +388,53 @@ export default function ProfilePage() {
             </Button>
             <Button onClick={handleCropComplete} disabled={!completedCrop}>
               Upload
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isEditing} onOpenChange={setIsEditing}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Class & School</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="edit-class">Class</Label>
+              <Select value={editForm.class} onValueChange={(value) => setEditForm({ ...editForm, class: value })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select Class" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Not set</SelectItem>
+                  <SelectItem value="9th">9th Grade</SelectItem>
+                  <SelectItem value="10th">10th Grade</SelectItem>
+                  <SelectItem value="11th">11th Grade</SelectItem>
+                  <SelectItem value="12th">12th Grade</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="edit-school">School</Label>
+              <Select value={editForm.school} onValueChange={(value) => setEditForm({ ...editForm, school: value })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select School" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Not set</SelectItem>
+                  {schoolOptions.map((s) => (
+                    <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditing(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveProfile}>
+              Save
             </Button>
           </DialogFooter>
         </DialogContent>

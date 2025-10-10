@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabaseClient'
 import crypto from 'crypto'
-import { Resend } from 'resend'
+import nodemailer from 'nodemailer'
 
 export async function POST(request: NextRequest) {
   try {
@@ -84,40 +84,82 @@ export async function POST(request: NextRequest) {
 
     const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}&role=${role}`
 
-    // Send email with reset link
-    if (process.env.RESEND_API_KEY) {
-      const resend = new Resend(process.env.RESEND_API_KEY)
+    // Send email with reset link using nodemailer
+    console.log('📧 EMAIL_USER:', process.env.EMAIL_USER ? 'Set' : 'Not set')
+    console.log('📧 EMAIL_PASS:', process.env.EMAIL_PASS ? 'Set' : 'Not set')
+
+    if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+      console.log('📧 Attempting to send email to:', user.email)
+
       try {
-        await resend.emails.send({
-          from: 'Eco Challenge <noreply@yourdomain.com>', // Replace with your verified domain
+        // Create transporter with Gmail
+        const transporter = nodemailer.createTransport({
+          service: 'gmail',
+          auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS
+          }
+        })
+
+        // Verify connection
+        await transporter.verify()
+        console.log('📧 Gmail connection verified')
+
+        // Send email
+        const info = await transporter.sendMail({
+          from: `"Eco Challenge" <${process.env.EMAIL_USER}>`,
           to: user.email,
           subject: 'Reset Your Password - Eco Challenge',
           html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <h2 style="color: #16a34a;">Reset Your Password</h2>
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+              <h2 style="color: #16a34a; text-align: center;">Reset Your Password</h2>
               <p>Hello ${user.name},</p>
               <p>You requested a password reset for your Eco Challenge account.</p>
-              <p>Click the link below to reset your password:</p>
-              <a href="${resetUrl}" style="background-color: #16a34a; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; margin: 16px 0;">Reset Password</a>
-              <p>This link will expire in 24 hours.</p>
+              <p>Click the button below to reset your password:</p>
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="${resetUrl}"
+                   style="background-color: #16a34a; color: white; padding: 12px 24px;
+                          text-decoration: none; border-radius: 6px; display: inline-block;
+                          font-weight: bold;">
+                  Reset Password
+                </a>
+              </div>
+              <p><strong>This link will expire in 24 hours.</strong></p>
               <p>If you didn't request this reset, please ignore this email.</p>
-              <p>Best regards,<br>The Eco Challenge Team</p>
+              <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
+              <p style="color: #666; font-size: 12px;">
+                Best regards,<br>
+                The Eco Challenge Team
+              </p>
             </div>
-          `,
+          `
         })
-      } catch (emailError) {
-        console.error('Email sending error:', emailError)
-        // Don't fail the request if email fails, but log it
+
+        console.log('✅ Email sent successfully!')
+        console.log('📧 Message ID:', info.messageId)
+
+      } catch (error) {
+        console.error('❌ Email sending failed:', error)
+        if (error instanceof Error) {
+          console.error('📧 Error message:', error.message)
+          if (error.message.includes('535')) {
+            console.error('📧 Gmail authentication failed - check EMAIL_USER and EMAIL_PASS')
+          } else if (error.message.includes('454')) {
+            console.error('📧 Gmail blocked the sign-in - check Gmail security settings')
+          }
+        }
       }
     } else {
-      console.log(`Password reset link for ${user.email}: ${resetUrl}`)
+      console.log('⚠️  Email credentials not configured')
+      console.log('🔗 Reset URL for manual use:', resetUrl)
     }
 
     return NextResponse.json(
       {
         message: 'If an account with that email exists, a password reset link has been sent.',
-        // Show reset URL in development for testing
-        resetUrl: process.env.NODE_ENV === 'development' ? resetUrl : undefined
+        // Always show reset URL for testing when email fails
+        resetUrl: resetUrl,
+        emailSent: !!(process.env.EMAIL_USER && process.env.EMAIL_PASS)
       },
       { status: 200 }
     )

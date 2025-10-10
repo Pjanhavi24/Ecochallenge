@@ -8,9 +8,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Loader2, Send, Sparkles, User, Bot } from 'lucide-react';
+import { Loader2, Send, Sparkles, User, Bot, Trash2 } from 'lucide-react';
 import { askEcoCoach } from './actions';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import ReactMarkdown from 'react-markdown';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 
@@ -51,6 +52,10 @@ export default function EcoCoachPage() {
     scrollToBottom();
   }, [messages, isStreaming]);
 
+  const clearChat = () => {
+    setMessages([]);
+  };
+
   const onSubmit = async (data: FormValues) => {
     const userMessage: Message = { id: crypto.randomUUID(), role: 'user', content: data.message };
     setMessages((prev) => [...prev, userMessage]);
@@ -64,37 +69,12 @@ export default function EcoCoachPage() {
     }));
 
     try {
-      const stream = await askEcoCoach(history, data.message);
-      const reader = stream.getReader();
-      const decoder = new TextDecoder();
-      let accumulatedResponse = '';
-      
-      setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: 'model', content: '' }]);
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        const chunk = decoder.decode(value, { stream: true });
-        accumulatedResponse += chunk;
-
-        setMessages((prev) => {
-          const newMessages = [...prev];
-          newMessages[newMessages.length - 1].content = accumulatedResponse;
-          return newMessages;
-        });
-      }
+      const response = await askEcoCoach(history, data.message);
+      setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: 'model', content: response }]);
     } catch (error) {
-      console.error('Error streaming response:', error);
+      console.error('Error getting response:', error);
       const errorMessage = 'Sorry, I had trouble connecting. Please try again.';
-      setMessages((prev) => {
-        const newMessages = [...prev];
-        if (newMessages[newMessages.length - 1].role === 'model') {
-           newMessages[newMessages.length - 1].content = errorMessage;
-        } else {
-           newMessages.push({ id: crypto.randomUUID(), role: 'model', content: errorMessage });
-        }
-        return newMessages;
-      });
+      setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: 'model', content: errorMessage }]);
     } finally {
       setIsStreaming(false);
     }
@@ -103,15 +83,29 @@ export default function EcoCoachPage() {
   return (
     <div className="container mx-auto p-4 max-w-3xl h-[calc(100vh-10rem)] flex flex-col">
       <Card className="flex-1 flex flex-col">
-        <CardHeader className="text-center">
-          <CardTitle className="flex items-center justify-center gap-2 text-3xl">
-            <Sparkles className="w-8 h-8 text-primary" />
-            AI Eco-Coach
-          </CardTitle>
-          <CardDescription>Ask me anything about ecology, conservation, and sustainability!</CardDescription>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div className="text-center flex-1">
+              <CardTitle className="flex items-center justify-center gap-2 text-3xl">
+                <Sparkles className="w-8 h-8 text-primary" />
+                AI Eco-Coach
+              </CardTitle>
+              <CardDescription>Ask me anything about ecology, conservation, and sustainability!</CardDescription>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={clearChat}
+              className="ml-4"
+              disabled={messages.length === 0}
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Clear Chat
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="flex-1 flex flex-col gap-4 overflow-hidden">
-          <ScrollArea className="flex-1 pr-4" ref={scrollAreaRef}>
+          <ScrollArea className="flex-1 pr-4 max-h-[400px]" ref={scrollAreaRef}>
             <div className="space-y-6">
               {messages.map((message) => (
                 <div key={message.id} className={cn('flex items-start gap-3', message.role === 'user' ? 'justify-end' : 'justify-start')}>
@@ -121,7 +115,11 @@ export default function EcoCoachPage() {
                     </Avatar>
                   )}
                   <div className={cn('max-w-[75%] rounded-lg p-3 text-sm', message.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-secondary')}>
-                    <p>{message.content}</p>
+                    <div className="prose prose-sm max-w-none dark:prose-invert">
+                      <ReactMarkdown>
+                        {message.content}
+                      </ReactMarkdown>
+                    </div>
                   </div>
                    {message.role === 'user' && (
                     <Avatar className="w-8 h-8">
@@ -130,16 +128,6 @@ export default function EcoCoachPage() {
                   )}
                 </div>
               ))}
-               {isStreaming && messages[messages.length - 1].role === 'user' && (
-                  <div className="flex items-start gap-3 justify-start">
-                     <Avatar className="w-8 h-8 border-2 border-primary">
-                      <AvatarFallback><Bot /></AvatarFallback>
-                    </Avatar>
-                     <div className="bg-secondary rounded-lg p-3 flex items-center">
-                        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-                     </div>
-                  </div>
-               )}
             </div>
           </ScrollArea>
           <div className="mt-auto pt-4">

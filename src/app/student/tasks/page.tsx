@@ -62,7 +62,7 @@ export default function TaskFeed() {
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {challenges.map((task) => {
-          const taskImage = placeholderImages.find(p => p.id === task.imageId);
+           const taskImage = placeholderImages.find(p => p.id === task.imageId);
           return (
             <Card key={task.challenge_id} className="flex flex-col overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
               {taskImage && (

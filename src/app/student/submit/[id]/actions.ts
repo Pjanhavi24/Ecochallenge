@@ -8,7 +8,7 @@ const formSchema = z.object({
   description: z.string(),
   photoDataUri: z.string().startsWith('data:'),
   studentId: z.string(),
-  challengeId: z.string().uuid(),
+  challengeId: z.number().int(),
 });
 
 // Client sends data URI; no file handling needed on the server

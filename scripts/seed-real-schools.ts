@@ -1,9 +1,21 @@
-import { PrismaClient } from '@/generated/prisma'
-
-const prisma = new PrismaClient()
+import { config } from 'dotenv'
+config({ path: '.env.local' })
+import { supabase } from '../src/lib/supabaseClient'
 
 async function seedRealSchools() {
   console.log('🏫 Seeding real schools database...')
+
+  // Clear existing schools first
+  const { error: deleteError } = await supabase
+    .from('schools')
+    .delete()
+    .neq('id', 0) // Delete all rows
+
+  if (deleteError) {
+    console.error('Error clearing schools:', deleteError)
+    return
+  }
+  console.log('🗑️ Cleared existing schools')
 
   const realSchools = [
     // Mumbai Schools
@@ -414,23 +426,21 @@ async function seedRealSchools() {
     },
   ]
 
-  // Clear existing schools first
-  await prisma.school.deleteMany({})
-  console.log('🗑️ Cleared existing schools')
-
   // Insert real schools
-  const createdSchools = await Promise.all(
-    realSchools.map(school => 
-      prisma.school.create({
-        data: school,
-      })
-    )
-  )
+  const { data, error } = await supabase
+    .from('schools')
+    .insert(realSchools)
+    .select()
 
-  console.log(`✅ Created ${createdSchools.length} real schools`)
-  
+  if (error) {
+    console.error('Error inserting schools:', error)
+    return
+  }
+
+  console.log(`✅ Created ${data?.length || 0} real schools`)
+
   // Group by city for summary
-  const schoolsByCity = createdSchools.reduce((acc, school) => {
+  const schoolsByCity = (data || []).reduce((acc, school) => {
     const city = school.city || 'Unknown'
     acc[city] = (acc[city] || 0) + 1
     return acc
@@ -449,8 +459,3 @@ seedRealSchools()
     console.error('❌ Error seeding real schools:', e)
     process.exit(1)
   })
-  .finally(async () => {
-    await prisma.$disconnect()
-  })
-
-

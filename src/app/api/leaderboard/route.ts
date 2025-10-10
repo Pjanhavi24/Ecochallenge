@@ -7,20 +7,13 @@ export async function GET(request: NextRequest) {
     const school_id = searchParams.get('school_id')
     const class_name = searchParams.get('class_name')
 
-    // Get users with approved submissions and their total points
+    // Get school leaderboard - sum points by school
     let query = supabase
       .from('users')
       .select(`
-        id,
-        name,
         points,
-        school:schools(name, city, state),
-        submissions!inner(
-          challenge:challenges(title),
-          status
-        )
+        schools!inner(name, city, state)
       `)
-      .eq('submissions.status', 'APPROVED')
 
     if (school_id) {
       query = query.eq('school_id', parseInt(school_id))
@@ -30,22 +23,41 @@ export async function GET(request: NextRequest) {
       query = query.eq('class', class_name)
     }
 
-    query = query.order('points', { ascending: false })
-
     const { data, error } = await query
 
     if (error) {
       throw error
     }
 
-    // Process the data to match the expected format
-    const leaderboard = (data || []).map(user => ({
-      id: user.id,
-      name: user.name,
-      points: user.points,
-      school: user.school,
-      submissions: user.submissions
-    }))
+    // Group by school and sum points
+    const schoolMap = new Map<string, { name: string; points: number; city: string; state: string }>();
+
+    (data || []).forEach(user => {
+      if (user.schools && user.schools.length > 0 && user.points) {
+        const school = user.schools[0];
+        const schoolKey = school.name;
+        if (schoolMap.has(schoolKey)) {
+          schoolMap.get(schoolKey)!.points += user.points;
+        } else {
+          schoolMap.set(schoolKey, {
+            name: school.name,
+            points: user.points,
+            city: school.city,
+            state: school.state
+          });
+        }
+      }
+    });
+
+    // Convert to array and sort by points
+    const leaderboard = Array.from(schoolMap.values())
+      .sort((a, b) => b.points - a.points)
+      .map((school, index) => ({
+        rank: index + 1,
+        name: school.name,
+        points: school.points,
+        location: `${school.city}, ${school.state}`
+      }));
 
     return NextResponse.json({ leaderboard })
   } catch (error) {

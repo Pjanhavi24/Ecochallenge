@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS challenges (
   description TEXT NOT NULL,
   category VARCHAR(100) NOT NULL,
   points INTEGER NOT NULL,
-  image_id VARCHAR(255) DEFAULT 'task-1-tree',
+  image_url TEXT,
   tutorial_url TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
