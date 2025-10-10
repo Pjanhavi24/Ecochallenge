@@ -4,56 +4,149 @@
 
 @layer base {
   :root {
-    --background: 125 50% 94%;
-    --foreground: 120 25% 15%;
-    --card: 125 50% 98%;
-    --card-foreground: 120 25% 15%;
-    --popover: 125 50% 98%;
-    --popover-foreground: 120 25% 15%;
-    --primary: 123 41% 40%;
-    --primary-foreground: 120 100% 98%;
-    --secondary: 125 30% 88%;
-    --secondary-foreground: 120 25% 15%;
-    --muted: 125 30% 88%;
-    --muted-foreground: 120 10% 40%;
-    --accent: 16 25% 38%;
-    --accent-foreground: 20 50% 96%;
-    --destructive: 0 84.2% 60.2%;
+    --background: 120 20% 98%;
+    --foreground: 120 10% 15%;
+    --card: 120 15% 96%;
+    --card-foreground: 120 10% 15%;
+    --popover: 120 15% 96%;
+    --popover-foreground: 120 10% 15%;
+    --primary: 120 60% 35%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 120 20% 92%;
+    --secondary-foreground: 120 10% 15%;
+    --muted: 120 15% 88%;
+    --muted-foreground: 120 5% 45%;
+    --accent: 120 50% 45%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
-    --border: 125 20% 85%;
-    --input: 125 20% 85%;
-    --ring: 123 41% 40%;
-    --radius: 0.5rem;
+    --border: 120 10% 85%;
+    --input: 120 10% 90%;
+    --ring: 120 60% 35%;
+    --radius: 0.75rem;
   }
- 
+
   .dark {
-    --background: 20 14% 4%;
-    --foreground: 20 5% 94%;
-    --card: 20 14% 5%;
-    --card-foreground: 20 5% 94%;
-    --popover: 20 14% 4%;
-    --popover-foreground: 20 5% 94%;
-    --primary: 123 41% 40%;
-    --primary-foreground: 120 100% 98%;
-    --secondary: 16 10% 12%;
-    --secondary-foreground: 20 5% 94%;
-    --muted: 16 10% 12%;
-    --muted-foreground: 20 5% 60%;
-    --accent: 16 25% 38%;
-    --accent-foreground: 20 50% 96%;
-    --destructive: 0 62.8% 30.6%;
+    --background: 120 20% 5%;
+    --foreground: 120 10% 95%;
+    --card: 120 15% 8%;
+    --card-foreground: 120 10% 95%;
+    --popover: 120 15% 8%;
+    --popover-foreground: 120 10% 95%;
+    --primary: 120 60% 50%;
+    --primary-foreground: 0 0% 9%;
+    --secondary: 120 20% 12%;
+    --secondary-foreground: 120 10% 95%;
+    --muted: 120 15% 15%;
+    --muted-foreground: 120 5% 65%;
+    --accent: 120 50% 55%;
+    --accent-foreground: 0 0% 9%;
+    --destructive: 0 62% 30%;
     --destructive-foreground: 0 0% 98%;
-    --border: 16 10% 12%;
-    --input: 16 10% 12%;
-    --ring: 123 41% 50%;
+    --border: 120 10% 20%;
+    --input: 120 10% 15%;
+    --ring: 120 60% 50%;
   }
 }
- 
+
 @layer base {
   * {
     @apply border-border;
   }
+
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
   }
+
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@layer utilities {
+  .animate-fade-in {
+    animation: fadeIn 0.6s ease-out;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.8s ease-out;
+  }
+
+  .animate-scale-in {
+    animation: scaleIn 0.5s ease-out;
+  }
+
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  .animate-glow {
+    animation: glow 2s ease-in-out infinite alternate;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(40px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes scaleIn {
+    from {
+      opacity: 0;
+      transform: scale(0.9);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  @keyframes glow {
+    from {
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    }
+    to {
+      box-shadow: 0 0 30px rgba(0, 0, 0, 0.2);
+    }
+  }
+
+  .transition-smooth {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .hover-lift {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  }
+
 }

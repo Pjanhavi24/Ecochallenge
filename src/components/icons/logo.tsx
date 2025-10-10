@@ -2,23 +2,44 @@ import { cn } from "@/lib/utils";
 
 export function Logo({ className }: { className?: string }) {
   return (
-    <div className={cn("flex items-center gap-2", className)}>
+    <div className={cn("flex items-center", className)}>
       <svg
         xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
+        viewBox="0 0 40 40"
         fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="h-8 w-8 text-primary"
+        className="h-10 w-10 text-slate-900 transition-transform duration-200 hover:scale-110"
       >
-        <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2z" />
-        <path d="M12 16s-2-4-4-4 0-4 4-4 4 4 4 4-2 4-4 4z" />
-        <path d="M12 12v4" />
-        <path d="M12 8a2 2 0 0 1 2-2h0a2 2 0 0 1 2 2v0" />
+        <circle
+          cx="20"
+          cy="20"
+          r="18"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          className="animate-pulse"
+        />
+        <path
+          d="M20 28c-3 0-5-2-5-4s2-2 5-2 5 2 5 4-2 2-5 2z"
+          fill="currentColor"
+          opacity="0.8"
+        />
+        <path
+          d="M20 16v6"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
+        <path
+          d="M20 12c1 0 2 1 2 2h0c0 1-1 2-2 2"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          fill="none"
+        />
+        <circle cx="14" cy="14" r="1" fill="currentColor" opacity="0.6" />
+        <circle cx="26" cy="18" r="1" fill="currentColor" opacity="0.6" />
+        <circle cx="16" cy="26" r="1" fill="currentColor" opacity="0.6" />
       </svg>
-      <span className="text-xl font-bold text-foreground">EcoChallenge</span>
     </div>
   );
 }

@@ -8,8 +8,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Loader2, Send, Sparkles, User, Bot, Trash2 } from 'lucide-react';
-import { askEcoCoach } from './actions';
+import { Loader2, Send, Sparkles, User, Bot, Trash2, GraduationCap, ToggleLeft, ToggleRight } from 'lucide-react';
+import { askEcoCoach, askTeacherBot } from './actions';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import ReactMarkdown from 'react-markdown';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -30,6 +30,7 @@ type Message = {
 export default function EcoCoachPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [botMode, setBotMode] = useState<'eco' | 'teacher'>('eco');
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   const form = useForm<FormValues>({
@@ -56,6 +57,13 @@ export default function EcoCoachPage() {
     setMessages([]);
   };
 
+  const toggleBotMode = (mode: 'eco' | 'teacher') => {
+    if (mode !== botMode) {
+      setBotMode(mode);
+      setMessages([]); // Clear chat when switching modes
+    }
+  };
+
   const onSubmit = async (data: FormValues) => {
     const userMessage: Message = { id: crypto.randomUUID(), role: 'user', content: data.message };
     setMessages((prev) => [...prev, userMessage]);
@@ -69,7 +77,9 @@ export default function EcoCoachPage() {
     }));
 
     try {
-      const response = await askEcoCoach(history, data.message);
+      const response = botMode === 'eco'
+        ? await askEcoCoach(history, data.message)
+        : await askTeacherBot(history, data.message);
       setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: 'model', content: response }]);
     } catch (error) {
       console.error('Error getting response:', error);
@@ -84,26 +94,60 @@ export default function EcoCoachPage() {
     <div className="container mx-auto p-4 max-w-3xl h-[calc(100vh-10rem)] flex flex-col">
       <Card className="flex-1 flex flex-col">
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <div className="text-center flex-1">
-              <CardTitle className="flex items-center justify-center gap-2 text-3xl">
-                <Sparkles className="w-8 h-8 text-primary" />
-                AI Eco-Coach
-              </CardTitle>
-              <CardDescription>Ask me anything about ecology, conservation, and sustainability!</CardDescription>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={clearChat}
-              className="ml-4"
-              disabled={messages.length === 0}
-            >
-              <Trash2 className="w-4 h-4 mr-2" />
-              Clear Chat
-            </Button>
-          </div>
-        </CardHeader>
+           <div className="flex items-center justify-between">
+             <div className="text-center flex-1">
+               <div className="flex items-center justify-center gap-4 mb-4">
+                 <Button
+                   variant="outline"
+                   size="sm"
+                   onClick={() => toggleBotMode('eco')}
+                   className={cn("flex items-center gap-2", botMode === 'eco' ? "bg-primary text-primary-foreground" : "")}
+                 >
+                   <Sparkles className="w-4 h-4" />
+                   EcoCoach
+                 </Button>
+                 <Button
+                   variant="outline"
+                   size="sm"
+                   onClick={() => toggleBotMode('teacher')}
+                   className={cn("flex items-center gap-2", botMode === 'teacher' ? "bg-primary text-primary-foreground" : "")}
+                 >
+                   <GraduationCap className="w-4 h-4" />
+                   Teacher Bot
+                 </Button>
+               </div>
+               <CardTitle className="flex items-center justify-center gap-2 text-3xl">
+                 {botMode === 'eco' ? (
+                   <>
+                     <Sparkles className="w-8 h-8 text-primary" />
+                     AI Eco-Coach
+                   </>
+                 ) : (
+                   <>
+                     <GraduationCap className="w-8 h-8 text-primary" />
+                     Teacher Bot
+                   </>
+                 )}
+               </CardTitle>
+               <CardDescription>
+                 {botMode === 'eco'
+                   ? "Ask me anything about ecology, conservation, and sustainability!"
+                   : "Get help with information, grammar checks, homework, and general education questions!"
+                 }
+               </CardDescription>
+             </div>
+             <Button
+               variant="outline"
+               size="sm"
+               onClick={clearChat}
+               className="ml-4"
+               disabled={messages.length === 0}
+             >
+               <Trash2 className="w-4 h-4 mr-2" />
+               Clear Chat
+             </Button>
+           </div>
+         </CardHeader>
         <CardContent className="flex-1 flex flex-col gap-4 overflow-hidden">
           <ScrollArea className="flex-1 pr-4 max-h-[400px]" ref={scrollAreaRef}>
             <div className="space-y-6">
@@ -139,7 +183,16 @@ export default function EcoCoachPage() {
                   render={({ field }) => (
                     <FormItem className="flex-1">
                       <FormControl>
-                        <Input placeholder="Ask about composting, saving water, etc." {...field} disabled={isStreaming} autoComplete="off"/>
+                        <Input
+                          placeholder={
+                            botMode === 'eco'
+                              ? "Ask about composting, saving water, etc."
+                              : "Ask for information, grammar help, homework assistance, etc."
+                          }
+                          {...field}
+                          disabled={isStreaming}
+                          autoComplete="off"
+                        />
                       </FormControl>
                     </FormItem>
                   )}
