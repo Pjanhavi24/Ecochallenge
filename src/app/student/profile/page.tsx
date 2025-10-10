@@ -1,4 +1,4 @@
-"use client";
+ "use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -48,9 +48,10 @@ export default function ProfilePage() {
   const [crop, setCrop] = useState<Crop>({ unit: '%', width: 50, height: 50, x: 25, y: 25 });
   const [completedCrop, setCompletedCrop] = useState<Crop | null>(null);
   const [imageRef, setImageRef] = useState<HTMLImageElement | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
-  const [editForm, setEditForm] = useState({ class: "", school: "" });
+  const [isRequesting, setIsRequesting] = useState(false);
+  const [requestForm, setRequestForm] = useState({ class: "", school: "" });
   const [schoolOptions, setSchoolOptions] = useState<{ id: number; name: string }[]>([]);
+  const [pendingRequest, setPendingRequest] = useState<any>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -99,7 +100,7 @@ export default function ProfilePage() {
       if (!isMounted) return;
       const p = profileRow as Profile;
       setProfile(p);
-      setEditForm({ class: p.class || "", school: p.school || "" });
+      setRequestForm({ class: p.class || "", school: p.school || "" });
 
       // Load submission stats and list (if table exists)
       const { data: subs, error: subsError } = await supabase
@@ -116,6 +117,20 @@ export default function ProfilePage() {
         setStats({ points: (p.points ?? 0) as number, submissions: 0, approved: 0 });
         setSubmissions([]);
       }
+
+      // Load pending school change request
+      const { data: requestData, error: requestError } = await supabase
+        .from("school_change_requests")
+        .select("*")
+        .eq("user_id", authUserId)
+        .eq("status", "pending")
+        .maybeSingle();
+
+      if (!requestError && requestData) {
+        setPendingRequest(requestData);
+      } else {
+        setPendingRequest(null);
+      }
       setLoading(false);
     }
 
@@ -127,19 +142,25 @@ export default function ProfilePage() {
 
   const avatarSeed = useMemo(() => profile?.name ?? "user", [profile?.name]);
 
-  const handleSaveProfile = async () => {
+  const handleSubmitRequest = async () => {
     if (!profile) return;
     try {
+      const classValue = requestForm.class === "not-set" ? null : requestForm.class || null;
+      const schoolValue = requestForm.school === "not-set" ? null : requestForm.school || null;
       const { error } = await supabase
-        .from('users')
-        .update({ class: editForm.class || null, school: editForm.school || null })
-        .eq('user_id', profile.user_id);
+        .from('school_change_requests')
+        .insert({
+          user_id: profile.user_id,
+          requested_class: classValue,
+          requested_school: schoolValue,
+          status: 'pending'
+        });
       if (error) throw error;
-      setProfile(prev => prev ? { ...prev, class: editForm.class || undefined, school: editForm.school || undefined } : null);
-      setIsEditing(false);
-      toast({ title: "Profile updated", description: "Your class and school have been updated." });
+      setIsRequesting(false);
+      setPendingRequest({ requested_class: classValue, requested_school: schoolValue, status: 'pending' });
+      toast({ title: "Request submitted", description: "Your change request has been submitted for approval." });
     } catch (error: any) {
-      toast({ variant: "destructive", title: "Update failed", description: error.message });
+      toast({ variant: "destructive", title: "Request failed", description: error.message });
     }
   };
 
@@ -157,6 +178,9 @@ export default function ProfilePage() {
     }
 
     setSelectedFile(file);
+    setCrop({ unit: '%', width: 50, height: 50, x: 25, y: 25 });
+    setCompletedCrop(null);
+    setImageRef(null);
     setCropModalOpen(true);
   };
 
@@ -237,6 +261,9 @@ export default function ProfilePage() {
       setUploading(false);
       setSelectedFile(null);
       setCompletedCrop(null);
+      // Reset the file input to allow selecting the same file again
+      const input = document.getElementById('profile-photo') as HTMLInputElement;
+      if (input) input.value = '';
     }
   };
 
@@ -307,8 +334,8 @@ export default function ProfilePage() {
               <span className="text-sm font-medium">School:</span>
               <span className="text-sm">{profile.school || "Not set"}</span>
             </div>
-            <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
-              Edit Class & School
+            <Button variant="outline" size="sm" onClick={() => setIsRequesting(true)} disabled={!!pendingRequest}>
+              {pendingRequest ? `Request Pending (${pendingRequest.status})` : 'Request Change'}
             </Button>
           </div>
         </CardHeader>
@@ -393,35 +420,35 @@ export default function ProfilePage() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={isEditing} onOpenChange={setIsEditing}>
+      <Dialog open={isRequesting} onOpenChange={setIsRequesting}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit Class & School</DialogTitle>
+            <DialogTitle>Request Class & School Change</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label htmlFor="edit-class">Class</Label>
-              <Select value={editForm.class} onValueChange={(value) => setEditForm({ ...editForm, class: value })}>
+              <Label htmlFor="request-class">Requested Class</Label>
+              <Select value={requestForm.class} onValueChange={(value) => setRequestForm({ ...requestForm, class: value })}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select Class" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Not set</SelectItem>
-                  <SelectItem value="9th">9th Grade</SelectItem>
-                  <SelectItem value="10th">10th Grade</SelectItem>
-                  <SelectItem value="11th">11th Grade</SelectItem>
-                  <SelectItem value="12th">12th Grade</SelectItem>
+                  <SelectItem key="not-set" value="not-set">Not set</SelectItem>
+                  <SelectItem key="9th" value="9th">9th Grade</SelectItem>
+                  <SelectItem key="10th" value="10th">10th Grade</SelectItem>
+                  <SelectItem key="11th" value="11th">11th Grade</SelectItem>
+                  <SelectItem key="12th" value="12th">12th Grade</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div>
-              <Label htmlFor="edit-school">School</Label>
-              <Select value={editForm.school} onValueChange={(value) => setEditForm({ ...editForm, school: value })}>
+              <Label htmlFor="request-school">Requested School</Label>
+              <Select value={requestForm.school} onValueChange={(value) => setRequestForm({ ...requestForm, school: value })}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select School" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Not set</SelectItem>
+                  <SelectItem key="not-set" value="not-set">Not set</SelectItem>
                   {schoolOptions.map((s) => (
                     <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>
                   ))}
@@ -430,11 +457,11 @@ export default function ProfilePage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditing(false)}>
+            <Button variant="outline" onClick={() => setIsRequesting(false)}>
               Cancel
             </Button>
-            <Button onClick={handleSaveProfile}>
-              Save
+            <Button onClick={handleSubmitRequest}>
+              Submit Request
             </Button>
           </DialogFooter>
         </DialogContent>

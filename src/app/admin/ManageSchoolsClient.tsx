@@ -11,14 +11,30 @@ type School = {
 	country?: string
 }
 
+type ChangeRequest = {
+	id: number
+	user_id: string
+	requested_class: string | null
+	requested_school: string | null
+	status: string
+	users: {
+		name: string
+		email: string
+		class: string | null
+		school: string | null
+	}
+}
+
 export function ManageSchoolsClient() {
 	const [schools, setSchools] = useState<School[]>([])
+	const [requests, setRequests] = useState<ChangeRequest[]>([])
 	const [form, setForm] = useState({ name: '', address: '', city: '', state: '', country: 'India' })
 	const [message, setMessage] = useState<string | null>(null)
 	const [error, setError] = useState<string | null>(null)
 
 	useEffect(() => {
 		refreshSchools().catch(() => {})
+		refreshRequests().catch(() => {})
 	}, [])
 
 	async function refreshSchools() {
@@ -28,6 +44,17 @@ export function ManageSchoolsClient() {
 			if (!res.ok) throw new Error('Failed to load schools')
 			const data = await res.json()
 			setSchools(data.schools ?? [])
+		} catch (e: any) {
+			setError(e.message)
+		}
+	}
+
+	async function refreshRequests() {
+		try {
+			const res = await fetch('/api/admin/school-change-requests')
+			if (!res.ok) throw new Error('Failed to load requests')
+			const data = await res.json()
+			setRequests(data.requests ?? [])
 		} catch (e: any) {
 			setError(e.message)
 		}
@@ -51,6 +78,26 @@ export function ManageSchoolsClient() {
 			setForm({ name: '', address: '', city: '', state: '', country: 'India' })
 			setMessage('School created')
 			await refreshSchools()
+		} catch (e: any) {
+			setError(e.message)
+		}
+	}
+
+	async function handleRequestAction(requestId: number, action: 'approve' | 'reject') {
+		try {
+			setMessage(null)
+			setError(null)
+			const res = await fetch('/api/admin/school-change-requests', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ request_id: requestId, action }),
+			})
+			if (!res.ok) {
+				const j = await res.json().catch(() => ({}))
+				throw new Error(j.error || `Failed to ${action} request`)
+			}
+			setMessage(`Request ${action}d`)
+			await refreshRequests()
 		} catch (e: any) {
 			setError(e.message)
 		}
@@ -106,6 +153,36 @@ export function ManageSchoolsClient() {
 					</div>
 				))}
 				{schools.length === 0 && <div className="text-sm text-emerald-800">No schools yet</div>}
+			</div>
+
+			<h2 className="text-xl font-semibold mt-6 mb-2 text-emerald-900">School Change Requests</h2>
+			<div className="space-y-2">
+				{requests.map(r => (
+					<div key={r.id} className="border rounded p-3 bg-white shadow-sm">
+						<div className="font-medium text-emerald-900">{r.users.name} ({r.users.email})</div>
+						<div className="text-sm text-emerald-800">
+							Current: Class {r.users.class || 'Not set'}, School {r.users.school || 'Not set'}
+						</div>
+						<div className="text-sm text-emerald-800">
+							Requested: Class {r.requested_class || 'Not set'}, School {r.requested_school || 'Not set'}
+						</div>
+						<div className="mt-2 space-x-2">
+							<button
+								onClick={() => handleRequestAction(r.id, 'approve')}
+								className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm"
+							>
+								Approve
+							</button>
+							<button
+								onClick={() => handleRequestAction(r.id, 'reject')}
+								className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
+							>
+								Reject
+							</button>
+						</div>
+					</div>
+				))}
+				{requests.length === 0 && <div className="text-sm text-emerald-800">No pending requests</div>}
 			</div>
 		</div>
 	)

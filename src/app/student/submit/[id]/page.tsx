@@ -96,7 +96,7 @@ export default function SubmitEvidencePage() {
         description: data.description,
         photoDataUri: preview as string,
         studentId,
-        challengeId: challenge.challenge_id,
+        challengeId: id,
       } as any);
       if (result.error) {
         throw new Error(result.error);

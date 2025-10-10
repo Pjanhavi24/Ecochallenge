@@ -8,7 +8,7 @@ const formSchema = z.object({
   description: z.string(),
   photoDataUri: z.string().startsWith('data:'),
   studentId: z.string(),
-  challengeId: z.number().int(),
+  challengeId: z.string(),
 });
 
 // Client sends data URI; no file handling needed on the server
@@ -35,9 +35,10 @@ export async function handleEvidenceSubmission(data: z.infer<typeof formSchema>)
     .insert([
       {
         user_id: studentId,
-        challenge_id: challengeId,
+        challenge_id: parseInt(challengeId),
         description,
         image_url: photoDataUri,
+        ai_analysis: result.analysisResult,
       },
     ]);
   if (insertError) {

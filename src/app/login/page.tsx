@@ -138,6 +138,7 @@ export default function LoginPage() {
               onChange={(e) => setEmail(e.target.value)}
               className="w-full mt-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-400 text-black"
               placeholder="you@example.com"
+              suppressHydrationWarning={true}
             />
           </div>
 

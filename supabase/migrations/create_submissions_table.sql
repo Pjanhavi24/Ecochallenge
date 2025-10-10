@@ -20,3 +20,7 @@ CREATE INDEX IF NOT EXISTS idx_submissions_user_id ON submissions(user_id);
 CREATE INDEX IF NOT EXISTS idx_submissions_challenge_id ON submissions(challenge_id);
 CREATE INDEX IF NOT EXISTS idx_submissions_status ON submissions(status);
 CREATE INDEX IF NOT EXISTS idx_submissions_created_at ON submissions(created_at);
+
+-- Allow authenticated users to insert submissions
+CREATE POLICY "Authenticated users can insert submissions" ON submissions
+  FOR INSERT WITH CHECK (auth.role() = 'authenticated');
