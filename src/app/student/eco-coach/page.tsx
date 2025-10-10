@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, use } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -8,12 +8,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Loader2, Send, Sparkles, User, Bot, Trash2 } from 'lucide-react';
-import { askEcoCoach } from './actions';
+import { Loader2, Send, Sparkles, User, Bot, BookText, SpellCheck, Languages, PenSquare, FileEdit, Mic } from 'lucide-react';
+import { askEcoCoach, askTeacherBot } from './actions';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import ReactMarkdown from 'react-markdown';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
 
 const formSchema = z.object({
   message: z.string().min(1, 'Message cannot be empty.'),
@@ -22,15 +24,32 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 type Message = {
-  id: string;
   role: 'user' | 'model';
   content: string;
 };
 
+type BotMode = 'eco' | 'teacher';
+
+// SpeechRecognition type might not be on the window object by default
+declare global {
+  interface Window {
+    SpeechRecognition: any;
+    webkitSpeechRecognition: any;
+  }
+}
+
 export default function EcoCoachPage() {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [ecoMessages, setEcoMessages] = useState<Message[]>([]);
+  const [teacherMessages, setTeacherMessages] = useState<Message[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [botMode, setBotMode] = useState<BotMode>('eco');
+  const [isRecording, setIsRecording] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const recognitionRef = useRef<any>(null);
+  const { toast } = useToast();
+
+  const messages = botMode === 'eco' ? ecoMessages : teacherMessages;
+  const setMessages = botMode === 'eco' ? setEcoMessages : setTeacherMessages;
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -52,74 +71,198 @@ export default function EcoCoachPage() {
     scrollToBottom();
   }, [messages, isStreaming]);
 
-  const clearChat = () => {
-    setMessages([]);
-  };
+  const handleBotResponse = async (stream: ReadableStream<any>) => {
+      const reader = stream.getReader();
+      const decoder = new TextDecoder();
+      let accumulatedResponse = '';
+      
+      setMessages((prev) => [...prev, { role: 'model', content: '' }]);
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value, { stream: true });
+        accumulatedResponse += chunk;
+
+        setMessages((prev) => {
+          const newMessages = [...prev];
+          newMessages[newMessages.length - 1].content = accumulatedResponse;
+          return newMessages;
+        });
+      }
+  }
 
   const onSubmit = async (data: FormValues) => {
-    const userMessage: Message = { id: crypto.randomUUID(), role: 'user', content: data.message };
+    const userMessage: Message = { role: 'user', content: data.message };
     setMessages((prev) => [...prev, userMessage]);
     setIsStreaming(true);
     form.reset();
 
-    // Prepare history for the API call
     const history = messages.map((msg) => ({
       role: msg.role,
       content: [{ text: msg.content }],
     }));
 
     try {
-      const response = await askEcoCoach(history, data.message);
-      setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: 'model', content: response }]);
+        let stream;
+        if (botMode === 'eco') {
+            stream = await askEcoCoach(history, data.message);
+        } else {
+            stream = await askTeacherBot(history, data.message);
+        }
+      await handleBotResponse(stream);
     } catch (error) {
-      console.error('Error getting response:', error);
+      console.error('Error streaming response:', error);
       const errorMessage = 'Sorry, I had trouble connecting. Please try again.';
-      setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: 'model', content: errorMessage }]);
+      setMessages((prev) => {
+        const newMessages = [...prev];
+        if (newMessages[newMessages.length - 1].role === 'model') {
+           newMessages[newMessages.length - 1].content = errorMessage;
+        } else {
+           newMessages.push({ role: 'model', content: errorMessage });
+        }
+        return newMessages;
+      });
     } finally {
       setIsStreaming(false);
+    }
+  };
+  
+  const handleToolClick = async (tool: 'summarize' | 'grammar' | 'translate' | 'write' | 'rewrite') => {
+    const messageContent = form.getValues('message');
+    if (!messageContent) return;
+
+    let command = '';
+    switch(tool) {
+        case 'summarize':
+            command = 'Summarize the following: ';
+            break;
+        case 'grammar':
+            command = 'Check the grammar of the following: ';
+            break;
+        case 'translate':
+            command = 'Translate the following text to your preferred language: ';
+            break;
+        case 'write':
+            command = 'Write original and engaging text about the following topic: ';
+            break;
+        case 'rewrite':
+            command = 'Improve the following content with alternative options: ';
+            break;
+    }
+    
+    const fullMessage = command + `\n\n"${messageContent}"`;
+
+    const userMessage: Message = { role: 'user', content: fullMessage };
+    setMessages((prev) => [...prev, userMessage]);
+    setIsStreaming(true);
+    form.reset();
+
+    const history = messages.map((msg) => ({
+      role: msg.role,
+      content: [{ text: msg.content }],
+    }));
+
+    try {
+      const stream = await askTeacherBot(history, fullMessage);
+      await handleBotResponse(stream);
+    } catch (error) {
+       console.error('Error streaming response:', error);
+       const errorMessage = 'Sorry, I had trouble connecting. Please try again.';
+       setMessages((prev) => [...prev, { role: 'model', content: errorMessage }]);
+    } finally {
+        setIsStreaming(false);
+    }
+  }
+
+  const handleMicClick = () => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      toast({
+        variant: 'destructive',
+        title: 'Unsupported Browser',
+        description: 'Speech recognition is not supported in your browser.',
+      });
+      return;
+    }
+
+    if (!recognitionRef.current) {
+        const recognition = new SpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.lang = 'en-US';
+
+        recognition.onstart = () => setIsRecording(true);
+        recognition.onend = () => setIsRecording(false);
+
+        recognition.onresult = (event: any) => {
+            const transcript = event.results[0][0].transcript;
+            form.setValue('message', transcript);
+        };
+
+        recognition.onerror = (event: any) => {
+            console.error('Speech recognition error', event.error);
+            let description = `Could not recognize speech. Error: ${event.error}`;
+            if (event.error === 'network') {
+                description = "Speech recognition failed due to a network issue. This can happen in restricted environments or with a poor connection.";
+            } else if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+           
+                description = "Microphone access was denied. Please allow microphone access in your browser settings to use this feature.";
+            }
+
+            toast({
+                variant: 'destructive',
+                title: 'Speech Recognition Error',
+                description,
+            });
+            setIsRecording(false);
+        };
+        recognitionRef.current = recognition;
+    }
+
+
+    if (isRecording) {
+      recognitionRef.current.stop();
+    } else {
+      recognitionRef.current.start();
     }
   };
 
   return (
     <div className="container mx-auto p-4 max-w-3xl h-[calc(100vh-10rem)] flex flex-col">
       <Card className="flex-1 flex flex-col">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div className="text-center flex-1">
-              <CardTitle className="flex items-center justify-center gap-2 text-3xl">
-                <Sparkles className="w-8 h-8 text-primary" />
-                AI Eco-Coach
-              </CardTitle>
-              <CardDescription>Ask me anything about ecology, conservation, and sustainability!</CardDescription>
+        <CardHeader className="text-center">
+            <div className="flex items-center justify-center space-x-2 my-4">
+                <Label htmlFor="bot-mode" className={cn(botMode === 'eco' ? 'text-primary' : 'text-muted-foreground')}>Eco-Coach</Label>
+                <Switch
+                    id="bot-mode"
+                    checked={botMode === 'teacher'}
+                    onCheckedChange={(checked) => setBotMode(checked ? 'teacher' : 'eco')}
+                />
+                <Label htmlFor="bot-mode" className={cn(botMode === 'teacher' ? 'text-primary' : 'text-muted-foreground')}>Teacher Bot</Label>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={clearChat}
-              className="ml-4"
-              disabled={messages.length === 0}
-            >
-              <Trash2 className="w-4 h-4 mr-2" />
-              Clear Chat
-            </Button>
-          </div>
+          <CardTitle className="flex items-center justify-center gap-2 text-3xl">
+            <Sparkles className="w-8 h-8 text-primary" />
+            {botMode === 'eco' ? 'AI Eco-Coach' : 'AI Teacher Bot'}
+          </CardTitle>
+          <CardDescription>
+            {botMode === 'eco' 
+              ? 'Ask me anything about ecology, conservation, and sustainability!'
+              : 'Ask me any academic question, or use the tools below to analyze your text.'}
+          </CardDescription>
         </CardHeader>
         <CardContent className="flex-1 flex flex-col gap-4 overflow-hidden">
-          <ScrollArea className="flex-1 pr-4 max-h-[400px]" ref={scrollAreaRef}>
+          <ScrollArea className="flex-1 pr-4" ref={scrollAreaRef}>
             <div className="space-y-6">
-              {messages.map((message) => (
-                <div key={message.id} className={cn('flex items-start gap-3', message.role === 'user' ? 'justify-end' : 'justify-start')}>
+              {messages.map((message, index) => (
+                <div key={index} className={cn('flex items-start gap-3', message.role === 'user' ? 'justify-end' : 'justify-start')}>
                   {message.role === 'model' && (
                     <Avatar className="w-8 h-8 border-2 border-primary">
                       <AvatarFallback><Bot /></AvatarFallback>
                     </Avatar>
                   )}
-                  <div className={cn('max-w-[75%] rounded-lg p-3 text-sm', message.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-secondary')}>
-                    <div className="prose prose-sm max-w-none dark:prose-invert">
-                      <ReactMarkdown>
-                        {message.content}
-                      </ReactMarkdown>
-                    </div>
+                  <div className={cn('max-w-[75%] rounded-lg p-3 text-sm whitespace-pre-wrap', message.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-secondary')}>
+                    <p>{message.content}</p>
                   </div>
                    {message.role === 'user' && (
                     <Avatar className="w-8 h-8">
@@ -128,9 +271,38 @@ export default function EcoCoachPage() {
                   )}
                 </div>
               ))}
+               {isStreaming && messages[messages.length - 1]?.role === 'user' && (
+                  <div className="flex items-start gap-3 justify-start">
+                     <Avatar className="w-8 h-8 border-2 border-primary">
+                      <AvatarFallback><Bot /></AvatarFallback>
+                    </Avatar>
+                     <div className="bg-secondary rounded-lg p-3 flex items-center">
+                        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                     </div>
+                  </div>
+               )}
             </div>
           </ScrollArea>
           <div className="mt-auto pt-4">
+            {botMode === 'teacher' && (
+                <div className="flex flex-wrap gap-2 mb-2">
+                    <Button variant="outline" size="sm" onClick={() => handleToolClick('summarize')} disabled={isStreaming || !form.watch('message')}>
+                        <BookText className="mr-2 h-4 w-4" /> Summarize
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => handleToolClick('grammar')} disabled={isStreaming || !form.watch('message')}>
+                        <SpellCheck className="mr-2 h-4 w-4" /> Check Grammar
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => handleToolClick('translate')} disabled={isStreaming || !form.watch('message')}>
+                        <Languages className="mr-2 h-4 w-4" /> Translate
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => handleToolClick('write')} disabled={isStreaming || !form.watch('message')}>
+                        <PenSquare className="mr-2 h-4 w-4" /> Write
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => handleToolClick('rewrite')} disabled={isStreaming || !form.watch('message')}>
+                        <FileEdit className="mr-2 h-4 w-4" /> Rewrite
+                    </Button>
+                </div>
+            )}
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="flex items-center gap-2">
                 <FormField
@@ -139,12 +311,21 @@ export default function EcoCoachPage() {
                   render={({ field }) => (
                     <FormItem className="flex-1">
                       <FormControl>
-                        <Input placeholder="Ask about composting, saving water, etc." {...field} disabled={isStreaming} autoComplete="off"/>
+                        <Input 
+                          placeholder={isRecording ? 'Listening...' : (botMode === 'eco' ? 'Ask about composting, saving water...' : 'Ask a question or type text to analyze...')}
+                          {...field}
+                          disabled={isStreaming} 
+                          autoComplete="off"
+                        />
                       </FormControl>
                     </FormItem>
                   )}
                 />
-                <Button type="submit" disabled={isStreaming} size="icon">
+                 <Button type="button" size="icon" variant={isRecording ? "destructive" : "outline"} onClick={handleMicClick} disabled={isStreaming}>
+                  <Mic className={cn(isRecording && "animate-pulse")} />
+                  <span className="sr-only">{isRecording ? "Stop recording" : "Start recording"}</span>
+                </Button>
+                <Button type="submit" disabled={isStreaming || !form.watch('message')} size="icon">
                   {isStreaming ? <Loader2 className="animate-spin" /> : <Send />}
                   <span className="sr-only">Send</span>
                 </Button>
@@ -156,3 +337,5 @@ export default function EcoCoachPage() {
     </div>
   );
 }
+
+    
