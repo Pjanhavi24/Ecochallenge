@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { Edit, Trash2 } from "lucide-react";
@@ -32,6 +33,25 @@ interface Challenge {
   created_at: string;
 }
 
+const CHALLENGE_CATEGORIES = [
+  'Biodiversity',
+  'Waste Management',
+  'Energy Conservation',
+  'Water Conservation',
+  'Plastic Reduction',
+  'Community',
+  'Festival Eco-Challenge',
+  'Air Quality',
+  'Climate Change',
+  'Soil Management',
+  'Forestry',
+  'Marine Conservation',
+  'Lifestyle',
+  'Policy',
+  'Cultural Learning',
+  'Personal Development'
+];
+
 export default function TaskManagementPage() {
   const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [newChallenge, setNewChallenge] = useState({ title: '', description: '', category: '', points: '' });
@@ -58,6 +78,14 @@ export default function TaskManagementPage() {
       setEditingChallenge({ ...editingChallenge, [id]: value });
     } else {
       setNewChallenge({ ...newChallenge, [id]: value });
+    }
+  };
+
+  const handleCategoryChange = (value: string) => {
+    if (editingChallenge) {
+      setEditingChallenge({ ...editingChallenge, category: value });
+    } else {
+      setNewChallenge({ ...newChallenge, category: value });
     }
   };
 
@@ -149,7 +177,18 @@ export default function TaskManagementPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="category">Category</Label>
-              <Input id="category" placeholder="e.g., Waste Management" value={currentForm.category} onChange={handleInputChange} />
+              <Select value={currentForm.category} onValueChange={handleCategoryChange}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {CHALLENGE_CATEGORIES.map((category) => (
+                    <SelectItem key={category} value={category}>
+                      {category}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="points">Eco-Points</Label>

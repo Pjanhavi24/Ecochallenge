@@ -26,3 +26,8 @@ export async function askTeacherBot(history: any[], message: string) {
     const { stream } = await teacherBot(history, message);
     return createReadableStream(stream);
 }
+
+export async function askTeacherBot(history: any[], message: string) {
+    const response = await teacherBot(history, message);
+    return response;
+}

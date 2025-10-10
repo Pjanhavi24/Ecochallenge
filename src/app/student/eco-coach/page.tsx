@@ -8,8 +8,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Loader2, Send, Sparkles, User, Bot, BookText, SpellCheck, Languages, PenSquare, FileEdit, Mic } from 'lucide-react';
-import { askEcoCoach, askTeacherBot } from './actions';
+import { Loader2, Send, Sparkles, User, Bot, Trash2 } from 'lucide-react';
+import { askEcoCoach } from './actions';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
@@ -42,8 +42,6 @@ export default function EcoCoachPage() {
   const [ecoMessages, setEcoMessages] = useState<Message[]>([]);
   const [teacherMessages, setTeacherMessages] = useState<Message[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
-  const [botMode, setBotMode] = useState<BotMode>('eco');
-  const [isRecording, setIsRecording] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
   const { toast } = useToast();
@@ -71,26 +69,9 @@ export default function EcoCoachPage() {
     scrollToBottom();
   }, [messages, isStreaming]);
 
-  const handleBotResponse = async (stream: ReadableStream<any>) => {
-      const reader = stream.getReader();
-      const decoder = new TextDecoder();
-      let accumulatedResponse = '';
-      
-      setMessages((prev) => [...prev, { role: 'model', content: '' }]);
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        const chunk = decoder.decode(value, { stream: true });
-        accumulatedResponse += chunk;
-
-        setMessages((prev) => {
-          const newMessages = [...prev];
-          newMessages[newMessages.length - 1].content = accumulatedResponse;
-          return newMessages;
-        });
-      }
-  }
+  const clearChat = () => {
+    setMessages([]);
+  };
 
   const onSubmit = async (data: FormValues) => {
     const userMessage: Message = { role: 'user', content: data.message };
@@ -104,13 +85,8 @@ export default function EcoCoachPage() {
     }));
 
     try {
-        let stream;
-        if (botMode === 'eco') {
-            stream = await askEcoCoach(history, data.message);
-        } else {
-            stream = await askTeacherBot(history, data.message);
-        }
-      await handleBotResponse(stream);
+      const response = await askEcoCoach(history, data.message);
+      setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: 'model', content: response }]);
     } catch (error) {
       console.error('Error streaming response:', error);
       const errorMessage = 'Sorry, I had trouble connecting. Please try again.';
@@ -231,25 +207,26 @@ export default function EcoCoachPage() {
   return (
     <div className="container mx-auto p-4 max-w-3xl h-[calc(100vh-10rem)] flex flex-col">
       <Card className="flex-1 flex flex-col">
-        <CardHeader className="text-center">
-            <div className="flex items-center justify-center space-x-2 my-4">
-                <Label htmlFor="bot-mode" className={cn(botMode === 'eco' ? 'text-primary' : 'text-muted-foreground')}>Eco-Coach</Label>
-                <Switch
-                    id="bot-mode"
-                    checked={botMode === 'teacher'}
-                    onCheckedChange={(checked) => setBotMode(checked ? 'teacher' : 'eco')}
-                />
-                <Label htmlFor="bot-mode" className={cn(botMode === 'teacher' ? 'text-primary' : 'text-muted-foreground')}>Teacher Bot</Label>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div className="text-center flex-1">
+              <CardTitle className="flex items-center justify-center gap-2 text-3xl">
+                <Sparkles className="w-8 h-8 text-primary" />
+                AI Eco-Coach
+              </CardTitle>
+              <CardDescription>Ask me anything about ecology, conservation, and sustainability!</CardDescription>
             </div>
-          <CardTitle className="flex items-center justify-center gap-2 text-3xl">
-            <Sparkles className="w-8 h-8 text-primary" />
-            {botMode === 'eco' ? 'AI Eco-Coach' : 'AI Teacher Bot'}
-          </CardTitle>
-          <CardDescription>
-            {botMode === 'eco' 
-              ? 'Ask me anything about ecology, conservation, and sustainability!'
-              : 'Ask me any academic question, or use the tools below to analyze your text.'}
-          </CardDescription>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={clearChat}
+              className="ml-4"
+              disabled={messages.length === 0}
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Clear Chat
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="flex-1 flex flex-col gap-4 overflow-hidden">
           <ScrollArea className="flex-1 pr-4" ref={scrollAreaRef}>
@@ -311,12 +288,7 @@ export default function EcoCoachPage() {
                   render={({ field }) => (
                     <FormItem className="flex-1">
                       <FormControl>
-                        <Input 
-                          placeholder={isRecording ? 'Listening...' : (botMode === 'eco' ? 'Ask about composting, saving water...' : 'Ask a question or type text to analyze...')}
-                          {...field}
-                          disabled={isStreaming} 
-                          autoComplete="off"
-                        />
+                        <Input placeholder="Ask about composting, saving water, etc." {...field} disabled={isStreaming} autoComplete="off"/>
                       </FormControl>
                     </FormItem>
                   )}
