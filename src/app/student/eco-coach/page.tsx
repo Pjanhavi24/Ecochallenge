@@ -8,8 +8,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Loader2, Send, Sparkles, User, Bot, Trash2 } from 'lucide-react';
-import { askEcoCoach } from './actions';
+import { Loader2, Send, Sparkles, User, Bot, Trash2, BookText, SpellCheck, Languages, PenSquare, FileEdit, Mic } from 'lucide-react';
+import { askEcoCoach, askTeacherBot } from './actions';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
@@ -42,6 +42,8 @@ export default function EcoCoachPage() {
   const [ecoMessages, setEcoMessages] = useState<Message[]>([]);
   const [teacherMessages, setTeacherMessages] = useState<Message[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [botMode, setBotMode] = useState<BotMode>('eco');
+  const [isRecording, setIsRecording] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
   const { toast } = useToast();
@@ -85,8 +87,8 @@ export default function EcoCoachPage() {
     }));
 
     try {
-      const response = await askEcoCoach(history, data.message);
-      setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: 'model', content: response }]);
+      const response = botMode === 'eco' ? await askEcoCoach(history, data.message) : await askTeacherBot(history, data.message);
+      setMessages((prev) => [...prev, { role: 'model', content: response }]);
     } catch (error) {
       console.error('Error streaming response:', error);
       const errorMessage = 'Sorry, I had trouble connecting. Please try again.';
@@ -140,10 +142,10 @@ export default function EcoCoachPage() {
     }));
 
     try {
-      const stream = await askTeacherBot(history, fullMessage);
-      await handleBotResponse(stream);
+      const response = await askTeacherBot(history, fullMessage);
+      setMessages((prev) => [...prev, { role: 'model', content: response }]);
     } catch (error) {
-       console.error('Error streaming response:', error);
+       console.error('Error getting response:', error);
        const errorMessage = 'Sorry, I had trouble connecting. Please try again.';
        setMessages((prev) => [...prev, { role: 'model', content: errorMessage }]);
     } finally {
@@ -152,6 +154,15 @@ export default function EcoCoachPage() {
   }
 
   const handleMicClick = () => {
+    if (!window.isSecureContext) {
+      toast({
+        variant: 'destructive',
+        title: 'Secure Context Required',
+        description: 'Speech recognition requires a secure connection (HTTPS). Please access the site via HTTPS.',
+      });
+      return;
+    }
+
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
       toast({
@@ -177,7 +188,6 @@ export default function EcoCoachPage() {
         };
 
         recognition.onerror = (event: any) => {
-            console.error('Speech recognition error', event.error);
             let description = `Could not recognize speech. Error: ${event.error}`;
             if (event.error === 'network') {
                 description = "Speech recognition failed due to a network issue. This can happen in restricted environments or with a poor connection.";
@@ -212,9 +222,23 @@ export default function EcoCoachPage() {
             <div className="text-center flex-1">
               <CardTitle className="flex items-center justify-center gap-2 text-3xl">
                 <Sparkles className="w-8 h-8 text-primary" />
-                AI Eco-Coach
+                {botMode === 'eco' ? 'AI Eco-Coach' : 'AI Teacher Bot'}
               </CardTitle>
-              <CardDescription>Ask me anything about ecology, conservation, and sustainability!</CardDescription>
+              <CardDescription>
+                {botMode === 'eco'
+                  ? 'Ask me anything about ecology, conservation, and sustainability!'
+                  : 'Ask me anything about academic subjects and get help with your studies!'
+                }
+              </CardDescription>
+              <div className="flex items-center justify-center gap-2 mt-2">
+                <Label htmlFor="bot-mode">Eco-Coach</Label>
+                <Switch
+                  id="bot-mode"
+                  checked={botMode === 'teacher'}
+                  onCheckedChange={(checked) => setBotMode(checked ? 'teacher' : 'eco')}
+                />
+                <Label htmlFor="bot-mode">Teacher Bot</Label>
+              </div>
             </div>
             <Button
               variant="outline"
@@ -293,10 +317,6 @@ export default function EcoCoachPage() {
                     </FormItem>
                   )}
                 />
-                 <Button type="button" size="icon" variant={isRecording ? "destructive" : "outline"} onClick={handleMicClick} disabled={isStreaming}>
-                  <Mic className={cn(isRecording && "animate-pulse")} />
-                  <span className="sr-only">{isRecording ? "Stop recording" : "Start recording"}</span>
-                </Button>
                 <Button type="submit" disabled={isStreaming || !form.watch('message')} size="icon">
                   {isStreaming ? <Loader2 className="animate-spin" /> : <Send />}
                   <span className="sr-only">Send</span>
