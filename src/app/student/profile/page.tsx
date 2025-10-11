@@ -15,6 +15,9 @@ import ReactCrop, { Crop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Trophy, Target, Leaf, Award, TrendingUp, Users } from "lucide-react";
 
 type Profile = {
   user_id: string;
@@ -141,6 +144,36 @@ export default function ProfilePage() {
   }, [router]);
 
   const avatarSeed = useMemo(() => profile?.name ?? "user", [profile?.name]);
+
+  // Calculate achievements and progress
+  const getAchievements = () => {
+    const achievements = [];
+    const points = stats.points || 0;
+    const approved = stats.approved || 0;
+
+    if (points >= 100) achievements.push({ name: "Eco Starter", icon: "🌱", description: "Earned 100 points" });
+    if (points >= 500) achievements.push({ name: "Green Warrior", icon: "🌿", description: "Earned 500 points" });
+    if (points >= 1000) achievements.push({ name: "Planet Protector", icon: "🌍", description: "Earned 1000 points" });
+    if (approved >= 5) achievements.push({ name: "Consistent Contributor", icon: "⭐", description: "5 approved submissions" });
+    if (approved >= 10) achievements.push({ name: "Eco Champion", icon: "🏆", description: "10 approved submissions" });
+    if (stats.submissions > 0 && approved / stats.submissions >= 0.8) achievements.push({ name: "Quality Focus", icon: "🎯", description: "80% approval rate" });
+
+    return achievements;
+  };
+
+  const getEcoImpact = () => {
+    const approved = stats.approved || 0;
+    // Rough estimates for environmental impact
+    return {
+      co2Saved: approved * 2.5, // kg of CO2 saved per approved submission
+      treesEquivalent: Math.floor(approved * 2.5 / 20), // 1 tree absorbs ~20kg CO2 per year
+      waterSaved: approved * 50, // liters of water saved
+      energySaved: approved * 5 // kWh of energy saved
+    };
+  };
+
+  const achievements = getAchievements();
+  const ecoImpact = getEcoImpact();
 
   const handleSubmitRequest = async () => {
     if (!profile) return;
@@ -340,20 +373,133 @@ export default function ProfilePage() {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="p-4 rounded-lg bg-emerald-50 border border-emerald-200 text-center">
-              <div className="text-sm text-emerald-800">Points</div>
-              <div className="text-2xl font-bold text-emerald-900">{stats.points?.toLocaleString?.() ?? stats.points}</div>
-            </div>
-            <div className="p-4 rounded-lg bg-blue-50 border border-blue-200 text-center">
-              <div className="text-sm text-blue-800">Submissions</div>
-              <div className="text-2xl font-bold text-blue-900">{stats.submissions}</div>
-            </div>
-            <div className="p-4 rounded-lg bg-amber-50 border border-amber-200 text-center">
-              <div className="text-sm text-amber-800">Approved</div>
-              <div className="text-2xl font-bold text-amber-900">{stats.approved}</div>
-            </div>
-          </div>
+          <Tabs defaultValue="overview" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="achievements">Achievements</TabsTrigger>
+              <TabsTrigger value="impact">Eco Impact</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="overview" className="space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="p-4 rounded-lg bg-emerald-50 border border-emerald-200 text-center">
+                  <div className="text-sm text-emerald-800">Points</div>
+                  <div className="text-2xl font-bold text-emerald-900">{stats.points?.toLocaleString?.() ?? stats.points}</div>
+                </div>
+                <div className="p-4 rounded-lg bg-blue-50 border border-blue-200 text-center">
+                  <div className="text-sm text-blue-800">Submissions</div>
+                  <div className="text-2xl font-bold text-blue-900">{stats.submissions}</div>
+                </div>
+                <div className="p-4 rounded-lg bg-amber-50 border border-amber-200 text-center">
+                  <div className="text-sm text-amber-800">Approved</div>
+                  <div className="text-2xl font-bold text-amber-900">{stats.approved}</div>
+                </div>
+              </div>
+
+              {/* Progress Tracking */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <Target className="w-5 h-5 text-primary" />
+                  Progress Goals
+                </h3>
+                <div className="space-y-3">
+                  <div>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span>Next 100 Points</span>
+                      <span>{Math.min(stats.points || 0, 100)}/100</span>
+                    </div>
+                    <Progress value={Math.min(((stats.points || 0) % 100), 100)} className="h-2" />
+                  </div>
+                  <div>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span>Approval Rate</span>
+                      <span>{stats.submissions > 0 ? Math.round((stats.approved / stats.submissions) * 100) : 0}%</span>
+                    </div>
+                    <Progress value={stats.submissions > 0 ? (stats.approved / stats.submissions) * 100 : 0} className="h-2" />
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="achievements" className="space-y-6">
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <Award className="w-5 h-5 text-primary" />
+                  Your Achievements ({achievements.length})
+                </h3>
+                {achievements.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Trophy className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                    <p>No achievements yet. Keep participating to unlock badges!</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {achievements.map((achievement, index) => (
+                      <Card key={index} className="p-4 border-2 border-primary/20 hover:border-primary/40 transition-colors">
+                        <div className="flex items-center gap-3">
+                          <div className="text-2xl">{achievement.icon}</div>
+                          <div>
+                            <h4 className="font-semibold text-primary">{achievement.name}</h4>
+                            <p className="text-sm text-muted-foreground">{achievement.description}</p>
+                          </div>
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="impact" className="space-y-6">
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <Leaf className="w-5 h-5 text-green-600" />
+                  Your Environmental Impact
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Card className="p-4 bg-green-50 border-green-200">
+                    <div className="flex items-center gap-3">
+                      <div className="text-2xl">🌳</div>
+                      <div>
+                        <div className="text-2xl font-bold text-green-800">{ecoImpact.treesEquivalent}</div>
+                        <div className="text-sm text-green-600">Trees Worth of CO₂ Absorbed</div>
+                      </div>
+                    </div>
+                  </Card>
+                  <Card className="p-4 bg-blue-50 border-blue-200">
+                    <div className="flex items-center gap-3">
+                      <div className="text-2xl">💧</div>
+                      <div>
+                        <div className="text-2xl font-bold text-blue-800">{ecoImpact.waterSaved.toLocaleString()}</div>
+                        <div className="text-sm text-blue-600">Liters of Water Saved</div>
+                      </div>
+                    </div>
+                  </Card>
+                  <Card className="p-4 bg-orange-50 border-orange-200">
+                    <div className="flex items-center gap-3">
+                      <div className="text-2xl">⚡</div>
+                      <div>
+                        <div className="text-2xl font-bold text-orange-800">{ecoImpact.energySaved}</div>
+                        <div className="text-sm text-orange-600">kWh of Energy Saved</div>
+                      </div>
+                    </div>
+                  </Card>
+                  <Card className="p-4 bg-red-50 border-red-200">
+                    <div className="flex items-center gap-3">
+                      <div className="text-2xl">🌫️</div>
+                      <div>
+                        <div className="text-2xl font-bold text-red-800">{ecoImpact.co2Saved.toFixed(1)}</div>
+                        <div className="text-sm text-red-600">kg of CO₂ Reduced</div>
+                      </div>
+                    </div>
+                  </Card>
+                </div>
+                <div className="text-center text-sm text-muted-foreground mt-4">
+                  Impact calculated based on approved eco-challenges completed
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
           <div className="mt-6">
             <Collapsible open={showSubmissions} onOpenChange={setShowSubmissions}>
               <CollapsibleTrigger asChild>
