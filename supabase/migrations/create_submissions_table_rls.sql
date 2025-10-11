@@ -15,11 +15,11 @@ CREATE POLICY "Service role can manage submissions" ON submissions
 
 -- Create policy to allow students to insert their own submissions
 CREATE POLICY "Students can insert their own submissions" ON submissions
-  FOR INSERT WITH CHECK (auth.uid()::text = student_id);
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
 
 -- Create policy to allow students to read their own submissions
 CREATE POLICY "Students can read their own submissions" ON submissions
-  FOR SELECT USING (auth.uid()::text = student_id);
+  FOR SELECT USING (auth.uid() = user_id);
 
 -- Create policy to allow authenticated users to read submissions (for teachers to review)
 -- Assuming teachers are authenticated users; we can refine this later

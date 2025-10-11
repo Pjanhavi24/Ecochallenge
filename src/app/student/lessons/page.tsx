@@ -82,16 +82,16 @@ export default function LessonsPage() {
           <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-green-400 to-blue-500 rounded-full mb-6 shadow-lg">
             <BookOpen className="w-10 h-10 text-white" />
           </div>
-          <h1 className="text-5xl font-bold bg-gradient-to-r from-green-600 to-blue-600 dark:from-green-400 dark:to-blue-400 bg-clip-text text-transparent mb-4">
+          <h1 className="text-5xl font-bold bg-gradient-to-r from-green-600 to-blue-600 dark:from-green-300 dark:to-blue-300 bg-clip-text text-transparent mb-4 drop-shadow-lg">
             Eco Lessons
           </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
+          <p className="text-xl text-gray-700 dark:text-gray-200 max-w-2xl mx-auto mb-8 drop-shadow-md">
             Embark on a journey of discovery. Learn, grow, and become an eco-champion through interactive lessons designed to inspire change.
           </p>
           <div className="flex items-center justify-center gap-2 mb-8">
-            <Filter className="w-5 h-5 text-muted-foreground" />
+            <Filter className="w-5 h-5 text-gray-600 dark:text-gray-300" />
             <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger className="w-64 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
+              <SelectTrigger className="w-64 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100">
                 <SelectValue placeholder="Filter by category" />
               </SelectTrigger>
               <SelectContent>
@@ -115,7 +115,7 @@ export default function LessonsPage() {
                 ref={(el) => { cardRefs.current[index] = el; }}
                 className={`group overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-700 ease-out transform ${
                   isVisible ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-8 opacity-0 scale-95'
-                } bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-0 hover:bg-white dark:hover:bg-gray-900`}
+                } bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm border border-white/20 dark:border-gray-700/50 hover:bg-white dark:hover:bg-gray-900 shadow-xl`}
               >
                 {lessonImage && (
                   <div className="relative w-full h-48 overflow-hidden">
@@ -134,15 +134,15 @@ export default function LessonsPage() {
                     <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
                       {lesson.category}
                     </Badge>
-                    <div className="flex items-center text-sm text-muted-foreground">
+                    <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
                       <Clock className="w-4 h-4 mr-1" />
                       {lesson.duration} min
                     </div>
                   </div>
-                  <CardTitle className="text-xl mb-3 group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">
+                  <CardTitle className="text-xl mb-3 text-gray-900 dark:text-gray-100 group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">
                     {lesson.title}
                   </CardTitle>
-                  <CardDescription className="text-sm mb-6 leading-relaxed">
+                  <CardDescription className="text-sm mb-6 leading-relaxed text-gray-700 dark:text-gray-300">
                     {lesson.summary}
                   </CardDescription>
                   <Button asChild className="bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 group-hover:scale-105">

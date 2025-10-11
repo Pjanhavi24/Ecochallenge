@@ -1,7 +1,7 @@
 -- Create users table
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
-    user_id TEXT UNIQUE NOT NULL,
+    user_id UUID UNIQUE NOT NULL,
     name TEXT NOT NULL,
     email TEXT UNIQUE NOT NULL,
     phone TEXT,
@@ -19,13 +19,13 @@ ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 
 -- Create policies
 CREATE POLICY "Users can read their own data" ON users
-    FOR SELECT USING (auth.uid()::text = user_id);
+    FOR SELECT USING (auth.uid() = user_id);
 
 CREATE POLICY "Users can update their own data" ON users
-    FOR UPDATE USING (auth.uid()::text = user_id);
+    FOR UPDATE USING (auth.uid() = user_id);
 
 CREATE POLICY "Users can insert their own data" ON users
-    FOR INSERT WITH CHECK (auth.uid()::text = user_id);
+    FOR INSERT WITH CHECK (auth.uid() = user_id);
 
 -- Index on user_id for performance
 CREATE INDEX idx_users_user_id ON users (user_id);

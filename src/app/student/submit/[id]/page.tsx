@@ -151,8 +151,8 @@ export default function SubmitEvidencePage() {
                   <FormItem>
                     <FormLabel>Your Photo Evidence</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="file" 
+                      <Input
+                        type="file"
                         accept="image/*"
                         onChange={(e) => {
                           field.onChange(e.target.files);
@@ -176,7 +176,10 @@ export default function SubmitEvidencePage() {
                   <FormItem>
                     <FormLabel>Description</FormLabel>
                     <FormControl>
-                      <Textarea placeholder="e.g., I planted a mango sapling in my grandma's garden today!" {...field} />
+                      <Textarea
+                        placeholder="e.g., I planted a mango sapling in my grandma's garden today!"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -197,11 +200,11 @@ export default function SubmitEvidencePage() {
 
           {analysisResult && (
              <div className="mt-6 p-4 bg-green-100 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-                <h4 className="font-semibold text-primary flex items-center gap-2">
+                <h4 className="font-semibold flex items-center gap-2">
                     <CheckCircle className="h-5 w-5" />
                     Automated Analysis Result
                 </h4>
-                <p className="mt-2 text-sm text-foreground/80">{analysisResult}</p>
+                <p className="mt-2 text-sm">{analysisResult}</p>
                 <p className="mt-3 text-xs text-muted-foreground">A teacher will review this analysis and your submission to award points.</p>
             </div>
           )}

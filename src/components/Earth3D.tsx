@@ -360,13 +360,13 @@ export default function Earth3D() {
             color="#000011"
             side={THREE.BackSide}
             transparent={true}
-            opacity={0.8}
+            opacity={0.3}
           />
         </mesh>
       </Canvas>
 
-      {/* Subtle overlay for better text readability */}
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/5 to-white/10 dark:via-black/5 dark:to-black/10" />
+      {/* Subtle overlay for better text readability in both light and dark modes */}
+      <div className="absolute inset-0 bg-gradient-to-b from-white/5 via-transparent to-white/5 dark:from-black/10 dark:via-transparent dark:to-black/10" />
     </div>
   );
 }

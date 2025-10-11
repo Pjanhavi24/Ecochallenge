@@ -48,7 +48,7 @@ export default function SubmissionsPage() {
           const { submissions } = await response.json();
           // Map the data to match the component's expected format
           const mapped = submissions.map((s: any) => ({
-            id: s.submission_id ?? s.id,
+            id: s.submission_id,
             studentName: s.users?.name || (s.user_id ? 'Student ' + s.user_id.substring(0, 8) + '…' : 'Unknown'),
             taskTitle: s.challenge?.title || 'Challenge',
             status: (s.status ?? 'pending').toLowerCase(),

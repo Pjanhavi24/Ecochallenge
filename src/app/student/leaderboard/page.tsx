@@ -16,10 +16,11 @@ const getRankColor = (rank: number) => {
 }
 
 type LeaderboardSchool = { rank: number; name: string; points: number; location: string };
+type LeaderboardStudent = { rank: number; name: string; points: number; class: string };
 
 export default function LeaderboardPage() {
   const [schoolBoard, setSchoolBoard] = useState<LeaderboardSchool[]>([]);
-  const [classBoard, setClassBoard] = useState<LeaderboardSchool[]>([]);
+  const [mySchoolStudents, setMySchoolStudents] = useState<LeaderboardStudent[]>([]);
   const [userSchool, setUserSchool] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<'student' | 'teacher'>('student');
 
@@ -39,18 +40,22 @@ export default function LeaderboardPage() {
         }
       }
 
-      // Get leaderboard data from API
-      const response = await fetch('/api/leaderboard');
-      if (response.ok) {
-        const result = await response.json();
-        const schools = result.leaderboard || [];
-        setSchoolBoard(schools);
-        // For now mirror to class tab
-        setClassBoard(schools);
+      // Get all schools leaderboard
+      const schoolResponse = await fetch('/api/leaderboard');
+      if (schoolResponse.ok) {
+        const schoolResult = await schoolResponse.json();
+        setSchoolBoard(schoolResult.leaderboard || []);
+      }
+
+      // Get my school students leaderboard
+      const studentResponse = await fetch('/api/leaderboard?type=students');
+      if (studentResponse.ok) {
+        const studentResult = await studentResponse.json();
+        setMySchoolStudents(studentResult.leaderboard || []);
       }
     };
     load();
-  }, [userSchool]);
+  }, []);
   return (
     <div className="container mx-auto p-4">
       <header className="mb-8 text-center">
@@ -61,16 +66,72 @@ export default function LeaderboardPage() {
         <p className="text-muted-foreground mt-2">See which schools are leading the charge in eco-action!</p>
       </header>
 
-      <Tabs defaultValue="school" className="w-full">
+      <Tabs defaultValue="my-school" className="w-full">
         <TabsList className="grid w-full grid-cols-2 bg-secondary">
-          <TabsTrigger value="school">All Schools</TabsTrigger>
-          <TabsTrigger value="class">Top Schools</TabsTrigger>
+          <TabsTrigger value="my-school">My School</TabsTrigger>
+          <TabsTrigger value="all-schools">All Schools</TabsTrigger>
         </TabsList>
-        <TabsContent value="school">
+
+        <TabsContent value="my-school">
           <Card>
             <CardHeader>
-              <CardTitle>School Leaderboard</CardTitle>
-              <CardDescription>The top schools leading in eco-action based on total student points.</CardDescription>
+              <CardTitle>My School Leaderboard</CardTitle>
+              <CardDescription>
+                {userSchool ? `See how students from ${userSchool} rank against each other in eco-action!` : 'Individual student rankings from your school.'}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[80px] text-center">Rank</TableHead>
+                    <TableHead>Student</TableHead>
+                    <TableHead>Class</TableHead>
+                    <TableHead className="text-right">Points</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {mySchoolStudents.length > 0 ? (
+                    mySchoolStudents.map((student) => (
+                      <TableRow key={student.rank}>
+                        <TableCell className="font-medium text-center">
+                          <div className={`flex items-center justify-center ${getRankColor(student.rank)}`}>
+                            {student.rank === 1 ? <Crown className="w-6 h-6"/> : student.rank}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <UserCircle2 className="w-8 h-8 text-muted-foreground"/>
+                            <span className="font-medium">{student.name}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>{student.class}</TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-1 font-semibold text-primary">
+                            <Star className="w-4 h-4 text-yellow-500" />
+                            {student.points.toLocaleString()}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                        No student data available for your school.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="all-schools">
+          <Card>
+            <CardHeader>
+              <CardTitle>All Schools Leaderboard</CardTitle>
+              <CardDescription>The aggregate scores of all schools participating in eco-action.</CardDescription>
             </CardHeader>
             <CardContent>
               <Table>
@@ -110,50 +171,6 @@ export default function LeaderboardPage() {
             </CardContent>
           </Card>
         </TabsContent>
-        <TabsContent value="class">
-           <Card>
-             <CardHeader>
-               <CardTitle>Top Performing Schools</CardTitle>
-               <CardDescription>The highest scoring schools in the competition.</CardDescription>
-             </CardHeader>
-             <CardContent>
-               <Table>
-                 <TableHeader>
-                   <TableRow>
-                     <TableHead className="w-[80px] text-center">Rank</TableHead>
-                     <TableHead>School</TableHead>
-                     <TableHead>Location</TableHead>
-                     <TableHead className="text-right">Total Points</TableHead>
-                   </TableRow>
-                 </TableHeader>
-                 <TableBody>
-                   {classBoard.slice(0, 10).map((school) => (
-                     <TableRow key={school.rank}>
-                       <TableCell className="font-medium text-center">
-                         <div className={`flex items-center justify-center ${getRankColor(school.rank)}`}>
-                           {school.rank === 1 ? <Crown className="w-6 h-6"/> : school.rank}
-                         </div>
-                       </TableCell>
-                       <TableCell>
-                          <div className="flex items-center gap-3">
-                           <UserCircle2 className="w-8 h-8 text-muted-foreground"/>
-                           <span className="font-medium">{school.name}</span>
-                         </div>
-                       </TableCell>
-                       <TableCell>{school.location}</TableCell>
-                       <TableCell className="text-right">
-                         <div className="flex items-center justify-end gap-1 font-semibold text-primary">
-                           <Star className="w-4 h-4 text-yellow-500" />
-                           {school.points.toLocaleString()}
-                         </div>
-                       </TableCell>
-                     </TableRow>
-                   ))}
-                 </TableBody>
-               </Table>
-             </CardContent>
-           </Card>
-         </TabsContent>
       </Tabs>
     </div>
   );

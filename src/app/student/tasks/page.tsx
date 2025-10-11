@@ -116,16 +116,16 @@ export default function TaskFeed() {
           <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-green-400 to-blue-500 rounded-full mb-6 shadow-lg">
             <Target className="w-10 h-10 text-white" />
           </div>
-          <h1 className="text-5xl font-bold bg-gradient-to-r from-green-600 to-blue-600 dark:from-green-400 dark:to-blue-400 bg-clip-text text-transparent mb-4">
+          <h1 className="text-5xl font-bold bg-gradient-to-r from-green-600 to-blue-600 dark:from-green-300 dark:to-blue-300 bg-clip-text text-transparent mb-4 drop-shadow-lg">
             Active Tasks
           </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
+          <p className="text-xl text-gray-700 dark:text-gray-200 max-w-2xl mx-auto mb-8 drop-shadow-md">
             Complete these available tasks, earn points, and save the planet! Take action and make a difference.
           </p>
           <div className="flex items-center justify-center gap-2 mb-8">
-            <Filter className="w-5 h-5 text-muted-foreground" />
+            <Filter className="w-5 h-5 text-gray-600 dark:text-gray-300" />
             <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger className="w-64 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
+              <SelectTrigger className="w-64 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100">
                 <SelectValue placeholder="Filter by category" />
               </SelectTrigger>
               <SelectContent>
@@ -155,7 +155,7 @@ export default function TaskFeed() {
                  ref={(el) => { cardRefs.current[index] = el; }}
                  className={`group overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-700 ease-out transform ${
                    isVisible ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-8 opacity-0 scale-95'
-                 } bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-0 hover:bg-white dark:hover:bg-gray-900`}
+                 } bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm border border-white/20 dark:border-gray-700/50 hover:bg-white dark:hover:bg-gray-900 shadow-xl`}
                >
                  {taskImage && (
                    <div className="relative w-full h-48 overflow-hidden">
@@ -171,18 +171,18 @@ export default function TaskFeed() {
                  )}
                  <div className="p-6">
                    <div className="flex items-start justify-between mb-4">
-                     <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
+                     <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100 border border-green-200 dark:border-green-700">
                        {task.category}
                      </Badge>
-                     <Badge variant="secondary" className="flex items-center gap-1 bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
+                     <Badge variant="secondary" className="flex items-center gap-1 bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 border border-yellow-200 dark:border-yellow-700">
                        <Star className="w-4 h-4 text-yellow-500" />
                        {task.points} PTS
                      </Badge>
                    </div>
-                   <CardTitle className="text-xl mb-3 group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">
+                   <CardTitle className="text-xl mb-3 text-gray-900 dark:text-gray-100 group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">
                      {task.title}
                    </CardTitle>
-                   <CardDescription className="text-sm mb-6 leading-relaxed">
+                   <CardDescription className="text-sm mb-6 leading-relaxed text-gray-700 dark:text-gray-300">
                      {task.description}
                    </CardDescription>
                    <div className="flex gap-2">

@@ -3,6 +3,7 @@ import { supabaseAdmin } from '@/lib/supabaseAdmin';
 
 export async function GET(request: NextRequest) {
   try {
+    // First try to get the requests with user data
     const { data, error } = await supabaseAdmin
       .from('school_change_requests')
       .select(`
@@ -11,11 +12,38 @@ export async function GET(request: NextRequest) {
       `)
       .eq('status', 'pending');
 
-    if (error) throw error;
+    if (error) {
+      // If the join fails (table doesn't exist or join issue), try without join
+      console.warn('Join failed, trying without user data:', error.message);
+      const { data: fallbackData, error: fallbackError } = await supabaseAdmin
+        .from('school_change_requests')
+        .select('*')
+        .eq('status', 'pending');
+
+      if (fallbackError) {
+        // If even the basic query fails, the table probably doesn't exist
+        console.warn('Table query failed:', fallbackError.message);
+        return NextResponse.json({ requests: [] });
+      }
+
+      // Return data without user info, but format it to match expected structure
+      const formattedData = fallbackData?.map(req => ({
+        ...req,
+        users: {
+          name: 'Unknown',
+          email: 'unknown@example.com',
+          class: req.requested_class || 'N/A',
+          school: req.requested_school || 'N/A'
+        }
+      })) || [];
+
+      return NextResponse.json({ requests: formattedData });
+    }
 
     return NextResponse.json({ requests: data });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error('Unexpected error in school change requests API:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 

@@ -217,40 +217,38 @@ export default function EcoCoachPage() {
   return (
     <div className="container mx-auto p-4 max-w-3xl h-[calc(100vh-10rem)] flex flex-col">
       <Card className="flex-1 flex flex-col">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div className="text-center flex-1">
-              <CardTitle className="flex items-center justify-center gap-2 text-3xl">
-                <Sparkles className="w-8 h-8 text-primary" />
-                {botMode === 'eco' ? 'AI Eco-Coach' : 'AI Teacher Bot'}
-              </CardTitle>
-              <CardDescription>
-                {botMode === 'eco'
-                  ? 'Ask me anything about ecology, conservation, and sustainability!'
-                  : 'Ask me anything about academic subjects and get help with your studies!'
-                }
-              </CardDescription>
-              <div className="flex items-center justify-center gap-2 mt-2">
-                <Label htmlFor="bot-mode">Eco-Coach</Label>
-                <Switch
-                  id="bot-mode"
-                  checked={botMode === 'teacher'}
-                  onCheckedChange={(checked) => setBotMode(checked ? 'teacher' : 'eco')}
-                />
-                <Label htmlFor="bot-mode">Teacher Bot</Label>
-              </div>
+        <CardHeader className="relative">
+          <div className="text-center">
+            <CardTitle className="flex items-center justify-center gap-2 text-3xl">
+              <Sparkles className="w-8 h-8 text-primary" />
+              {botMode === 'eco' ? 'AI Eco-Coach' : 'AI Teacher Bot'}
+            </CardTitle>
+            <CardDescription>
+              {botMode === 'eco'
+                ? 'Ask me anything about ecology, conservation, and sustainability!'
+                : 'Ask me anything about academic subjects and get help with your studies!'
+              }
+            </CardDescription>
+            <div className="flex items-center justify-center gap-2 mt-2">
+              <Label htmlFor="bot-mode">Eco-Coach</Label>
+              <Switch
+                id="bot-mode"
+                checked={botMode === 'teacher'}
+                onCheckedChange={(checked) => setBotMode(checked ? 'teacher' : 'eco')}
+              />
+              <Label htmlFor="bot-mode">Teacher Bot</Label>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={clearChat}
-              className="ml-4"
-              disabled={messages.length === 0}
-            >
-              <Trash2 className="w-4 h-4 mr-2" />
-              Clear Chat
-            </Button>
           </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={clearChat}
+            className="absolute top-4 right-4 h-8 w-8 p-0"
+            disabled={messages.length === 0}
+          >
+            <Trash2 className="w-3 h-3" />
+            <span className="sr-only">Clear Chat</span>
+          </Button>
         </CardHeader>
         <CardContent className="flex-1 flex flex-col gap-4 overflow-hidden">
           <ScrollArea className="flex-1 pr-4" ref={scrollAreaRef}>

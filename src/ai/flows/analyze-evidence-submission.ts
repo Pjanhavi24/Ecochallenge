@@ -38,7 +38,7 @@ export async function analyzeEvidence(input: AnalyzeEvidenceInput): Promise<Anal
 
 const analyzeEvidencePrompt = ai.definePrompt({
   name: 'analyzeEvidencePrompt',
-  model: 'googleai/gemini-1.5-flash',
+  model: 'googleai/gemini-2.5-flash',
   input: {schema: AnalyzeEvidenceInputSchema},
   output: {schema: AnalyzeEvidenceOutputSchema},
   prompt: `You are an assistant tasked with analyzing student submissions for eco-challenges.

@@ -1,6 +1,6 @@
 -- Create challenges table
 CREATE TABLE IF NOT EXISTS challenges (
-  challenge_id SERIAL PRIMARY KEY,
+  challenge_id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   title VARCHAR(255) NOT NULL,
   description TEXT NOT NULL,
   category VARCHAR(100) NOT NULL,

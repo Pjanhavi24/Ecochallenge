@@ -1,8 +1,8 @@
 -- Create submissions table
 CREATE TABLE IF NOT EXISTS submissions (
   submission_id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id TEXT NOT NULL,
-  challenge_id INTEGER REFERENCES challenges(challenge_id),
+  user_id UUID NOT NULL,
+  challenge_id UUID REFERENCES challenges(challenge_id),
   assignment_id INTEGER,
   description TEXT,
   image_url TEXT,
