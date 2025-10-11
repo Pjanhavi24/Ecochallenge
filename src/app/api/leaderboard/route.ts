@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabaseClient'
+import { supabaseAdmin } from '@/lib/supabaseAdmin'
 
 export async function GET(request: NextRequest) {
   try {
@@ -10,63 +11,69 @@ export async function GET(request: NextRequest) {
 
 
     if (type === 'students') {
-      // Get current user's school_id first
+      // Get current user's school first
       const { data: sessionData } = await supabase.auth.getSession()
-      let userSchoolId = null
+      let userSchool = null
       if (sessionData?.session?.user) {
-        const { data: userData } = await supabase
+        const { data: userData } = await supabaseAdmin
           .from("users")
-          .select("school_id")
+          .select("school")
           .eq("user_id", sessionData.session.user.id)
           .single();
-        userSchoolId = userData?.school_id
+        userSchool = userData?.school
       }
 
-      if (userSchoolId) {
-        // Get individual students from user's school using school_id
-        const { data, error } = await supabase
-          .from('users')
-          .select('name, points, class')
-          .eq('school_id', userSchoolId)
-          .eq('role', 'student')
-          .order('points', { ascending: false })
+      // For debugging, return all students
+      const { data, error } = await supabaseAdmin
+        .from('users')
+        .select('name, points, class, school')
+        .ilike('role', 'student')
+        .order('points', { ascending: false })
 
-        if (error) {
-          throw error
-        }
-
-        const studentLeaderboard = (data || [])
-          .filter(student => student.points > 0)
-          .map((student, index) => ({
-            rank: index + 1,
-            name: student.name,
-            points: student.points,
-            class: student.class
-          }));
-
-        return NextResponse.json({ leaderboard: studentLeaderboard })
-      } else {
-        // Fallback: return empty array if no school_id found
-        return NextResponse.json({ leaderboard: [] })
+      if (error) {
+        throw error
       }
+
+      const studentLeaderboard = (data || [])
+        .filter(student => student.points > 0)
+        .map((student, index) => ({
+          rank: index + 1,
+          name: student.name,
+          points: student.points,
+          class: student.class
+        }));
+
+      return NextResponse.json({ leaderboard: studentLeaderboard })
+    } else if (type === 'all_students') {
+      // Get all students from all schools
+      const { data, error } = await supabaseAdmin
+        .from('users')
+        .select('name, points, class, school, profile_image_url')
+        .ilike('role', 'student')
+        .order('points', { ascending: false })
+
+      if (error) {
+        throw error
+      }
+
+      const allStudentsLeaderboard = (data || [])
+        .filter(student => student.points > 0)
+        .map((student, index) => ({
+          rank: index + 1,
+          name: student.name,
+          points: student.points,
+          class: student.class,
+          school: student.school || 'Unknown',
+          profile_image_url: student.profile_image_url
+        }));
+
+      return NextResponse.json({ leaderboard: allStudentsLeaderboard })
     } else {
       // Get school leaderboard - sum points by school (default behavior)
-      let query = supabase
+      const { data, error } = await supabaseAdmin
         .from('users')
-        .select(`
-          points,
-          schools!inner(name, city, state)
-        `)
-
-      if (school_id) {
-        query = query.eq('school_id', parseInt(school_id))
-      }
-
-      if (class_name) {
-        query = query.eq('class', class_name)
-      }
-
-      const { data, error } = await query
+        .select('school, points')
+        .ilike('role', 'student')
 
       if (error) {
         throw error
@@ -76,21 +83,39 @@ export async function GET(request: NextRequest) {
       const schoolMap = new Map<string, { name: string; points: number; city: string; state: string }>();
 
       (data || []).forEach(user => {
-        if (user.schools && user.schools.length > 0 && user.points) {
-          const school = user.schools[0];
-          const schoolKey = school.name;
+        if (user.school && user.points) {
+          const schoolKey = user.school;
           if (schoolMap.has(schoolKey)) {
             schoolMap.get(schoolKey)!.points += user.points;
           } else {
+            // For now, set city/state as unknown, or we can fetch schools separately
             schoolMap.set(schoolKey, {
-              name: school.name,
+              name: schoolKey,
               points: user.points,
-              city: school.city,
-              state: school.state
+              city: 'Unknown',
+              state: 'Unknown'
             });
           }
         }
       });
+
+      // Optionally, fetch school details
+      const schoolNames = Array.from(schoolMap.keys());
+      if (schoolNames.length > 0) {
+        const { data: schoolsData, error: schoolsError } = await supabaseAdmin
+          .from('schools')
+          .select('name, city, state')
+          .in('name', schoolNames);
+
+        if (!schoolsError && schoolsData) {
+          schoolsData.forEach(school => {
+            if (schoolMap.has(school.name)) {
+              schoolMap.get(school.name)!.city = school.city;
+              schoolMap.get(school.name)!.state = school.state;
+            }
+          });
+        }
+      }
 
       // Convert to array and sort by points
       const leaderboard = Array.from(schoolMap.values())

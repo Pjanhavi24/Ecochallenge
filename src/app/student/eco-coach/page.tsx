@@ -13,8 +13,6 @@ import { askEcoCoach, askTeacherBot } from './actions';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 
 const formSchema = z.object({
@@ -219,6 +217,26 @@ export default function EcoCoachPage() {
       <Card className="flex-1 flex flex-col">
         <CardHeader className="relative">
           <div className="text-center">
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <Button
+                variant={botMode === 'eco' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setBotMode('eco')}
+                className="flex items-center gap-2"
+              >
+                <Sparkles className="w-4 h-4" />
+                Eco-Coach
+              </Button>
+              <Button
+                variant={botMode === 'teacher' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setBotMode('teacher')}
+                className="flex items-center gap-2"
+              >
+                <Bot className="w-4 h-4" />
+                Teacher Bot
+              </Button>
+            </div>
             <CardTitle className="flex items-center justify-center gap-2 text-3xl">
               <Sparkles className="w-8 h-8 text-primary" />
               {botMode === 'eco' ? 'AI Eco-Coach' : 'AI Teacher Bot'}
@@ -229,15 +247,6 @@ export default function EcoCoachPage() {
                 : 'Ask me anything about academic subjects and get help with your studies!'
               }
             </CardDescription>
-            <div className="flex items-center justify-center gap-2 mt-2">
-              <Label htmlFor="bot-mode">Eco-Coach</Label>
-              <Switch
-                id="bot-mode"
-                checked={botMode === 'teacher'}
-                onCheckedChange={(checked) => setBotMode(checked ? 'teacher' : 'eco')}
-              />
-              <Label htmlFor="bot-mode">Teacher Bot</Label>
-            </div>
           </div>
           <Button
             variant="outline"
@@ -251,7 +260,7 @@ export default function EcoCoachPage() {
           </Button>
         </CardHeader>
         <CardContent className="flex-1 flex flex-col gap-4 overflow-hidden">
-          <ScrollArea className="flex-1 pr-4" ref={scrollAreaRef}>
+          <ScrollArea className="flex-1 pr-4 h-full overflow-y-auto" ref={scrollAreaRef}>
             <div className="space-y-6">
               {messages.map((message, index) => (
                 <div key={index} className={cn('flex items-start gap-3', message.role === 'user' ? 'justify-end' : 'justify-start')}>
